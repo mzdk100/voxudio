@@ -34,11 +34,14 @@ use {
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let mut collector = AudioCollector::new()?;
-///     collector.collect()?;
-///     let data = collector.read::<44100>(2).await?;
-///     collector.close();
-///     Ok(())
+/// let Ok(mut collector) = AudioCollector::new() else {
+/// return Ok(());
+/// };
+/// collector.collect()?;
+/// let data = collector.read::<44100>(2).await?;
+/// collector.close();
+/// 
+/// Ok(())
 /// }
 /// ```
 pub struct AudioCollector {
@@ -106,7 +109,9 @@ impl AudioCollector {
     /// ```
     /// use voxudio::AudioCollector;
     ///
-    /// let collector = AudioCollector::new()?;
+    /// if let Ok(collector) = AudioCollector::new() {
+    /// println!("{:?}", collector);
+    /// }
     /// ```
     pub fn new() -> Result<Self, OperationError> {
         let host = default_host();
@@ -139,9 +144,13 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let collector = AudioCollector::new()?;
+    /// fn main() -> anyhow::Result<()> {
+    /// let Ok(collector) = AudioCollector::new() else {
+    /// return Ok(());
+    /// };
     /// let name = collector.get_name()?;
+    /// Ok(())
+    /// }
     /// ```
     pub fn get_name(&self) -> Result<String, OperationError> {
         Ok(self.device.name()?)
@@ -155,9 +164,9 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let collector = AudioCollector::new()?;
+    /// if let Ok(collector) = AudioCollector::new() {
     /// let channels = collector.get_supported_stream_channels();
+    /// }
     /// ```
     pub fn get_supported_stream_channels(&self) -> usize {
         self.supported_stream_config.channels() as _
@@ -171,9 +180,14 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let collector = AudioCollector::new()?;
+    /// fn main() -> anyhow::Result<()> {
+    /// let Ok(collector) = AudioCollector::new() else {
+    /// return Ok(());
+    /// };
     /// let sample_rate = collector.get_supported_stream_sample_rate();
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn get_supported_stream_sample_rate(&self) -> usize {
         self.supported_stream_config.sample_rate().0 as _
@@ -193,9 +207,14 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let mut collector = AudioCollector::new()?;
+    /// fn main() -> anyhow::Result<()> {
+    /// let Ok(mut collector) = AudioCollector::new() else {
+    /// return Ok(());
+    /// };
     /// collector.set_stream_channels(2)?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn set_stream_channels(&mut self, channels: usize) -> Result<(), OperationError> {
         self.stream_config.channels = channels as _;
@@ -216,9 +235,14 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let mut collector = AudioCollector::new()?;
+    /// fn main() -> anyhow::Result<()> {
+    /// let Ok(mut collector) = AudioCollector::new() else {
+    /// return Ok(());
+    /// };
     /// collector.set_stream_sample_rate(32000)?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn set_stream_sample_rate(&mut self, sample_rate: usize) -> Result<(), OperationError> {
         self.stream_config.sample_rate.0 = sample_rate as _;
@@ -233,9 +257,9 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let collector = AudioCollector::new()?;
+    /// if let Ok(collector) = AudioCollector::new() {
     /// let channels = collector.get_stream_channels();
+    /// }
     /// ```
     pub fn get_stream_channels(&self) -> usize {
         self.stream_config.channels as _
@@ -249,9 +273,9 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let collector = AudioCollector::new()?;
+    /// if let Ok(collector) = AudioCollector::new() {
     /// let sample_rate = collector.get_stream_sample_rate();
+    /// }
     /// ```
     pub fn get_stream_sample_rate(&self) -> usize {
         self.stream_config.sample_rate.0 as _
@@ -268,9 +292,14 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let collector = AudioCollector::new()?;
+    /// fn main() -> anyhow::Result<()> {
+    /// let Ok(collector) = AudioCollector::new() else {
+    /// return Ok(());
+    /// };
     /// collector.collect()?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn collect(&self) -> Result<(), OperationError> {
         Ok(self.stream.play()?)
@@ -287,9 +316,14 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let collector = AudioCollector::new()?;
+    /// fn main() -> anyhow::Result<()> {
+    /// let Ok(collector) = AudioCollector::new() else {
+    /// return Ok(());
+    /// };
     /// collector.pause()?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn pause(&self) -> Result<(), OperationError> {
         Ok(self.stream.pause()?)
@@ -311,7 +345,9 @@ impl AudioCollector {
     /// use voxudio::AudioCollector;
     /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
-    /// let mut collector = AudioCollector::new()?;
+    /// let Ok(mut collector) = AudioCollector::new() else {
+    /// return Ok(());
+    /// };
     /// let data = collector.read::<44100>(2).await?;
     ///
     /// Ok(())
@@ -362,9 +398,9 @@ impl AudioCollector {
     /// # 示例
     /// ```
     /// use voxudio::AudioCollector;
-    ///
-    /// let mut collector = AudioCollector::new()?;
+    /// if let Ok(mut collector) = AudioCollector::new() {
     /// collector.close();
+    /// }
     /// ```
     pub fn close(&mut self) {
         self.receiver.close()

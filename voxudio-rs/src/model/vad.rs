@@ -132,9 +132,13 @@ impl VoiceActivityDetectorBuilder {
     ///
     /// ```
     /// use voxudio::VoiceActivityDetectorBuilder;
+    /// fn main() -> anyhow::Result<()> {
     /// let vad = VoiceActivityDetectorBuilder::default()
     ///     .with_threshold(0.6)
     ///     .build("../checkpoint/voice_activity_detector.onnx")?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn build<P>(&self, model_path: P) -> Result<VoiceActivityDetector, OperationError>
     where
@@ -193,8 +197,9 @@ impl Default for VoiceActivityDetectorBuilder {
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
 /// let mut vad = VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
-/// let audio_data = load_audio::<16000, _>("../asset/hello_in_cn.mp3", true).await?;
-/// let segments = vad.get_speech_segments::<16000>(&audio_data[0]).await?;
+/// let (audio_data, channels) = load_audio::<16000, _>("../asset/hello_in_cn.mp3", true).await?;
+/// let segments = vad.get_speech_segments::<16000>(&audio_data).await?;
+/// 
 /// Ok(())
 /// }
 /// ```
@@ -224,7 +229,11 @@ impl VoiceActivityDetector {
     /// # 示例
     ///
     /// ```
+    /// fn main() -> anyhow::Result<()> {
     /// let vad = voxudio::VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
+    /// 
+    /// Ok(())
+    /// }
     /// ```
     pub fn new<P>(model_path: P) -> Result<Self, OperationError>
     where
@@ -306,8 +315,8 @@ impl VoiceActivityDetector {
     /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
     /// let mut vad = VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
-    /// let audio_data = load_audio::<16000, _>("../asset/hello_in_cn.mp3", true).await?;
-    /// let prob = vad.detect::<16000>(&audio_data[0][..512]).await?;
+    /// let (audio_data, channels) = load_audio::<16000, _>("../asset/hello_in_cn.mp3", true).await?;
+    /// let prob = vad.detect::<16000>(&audio_data[..512]).await?;
     /// if prob > 0.5 {
     ///     println!("检测到语音");
     /// }
@@ -385,10 +394,11 @@ impl VoiceActivityDetector {
     ///
     /// ```
     /// use voxudio::{load_audio,VoiceActivityDetector};
+    /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
     /// let mut vad = VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
-    /// let audio_data = load_audio::<16000, _>("../asset/hello_in_cn.mp3", true).await?;
-    /// let segments = vad.get_speech_segments::<16000>(&audio_data[0]).await?;
+    /// let (audio_data, channels) = load_audio::<16000, _>("../asset/hello_in_cn.mp3", true).await?;
+    /// let segments = vad.get_speech_segments::<16000>(&audio_data).await?;
     /// for (start, end) in segments {
     ///     println!("语音片段: {}ms - {}ms", start*1000/16000, end*1000/16000);
     /// }
@@ -553,6 +563,7 @@ impl VoiceActivityDetector {
     ///
     /// ```
     /// use voxudio::{load_audio,VoiceActivityDetector};
+    /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
     /// let mut vad = VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
     /// let (audio_data, channels) = load_audio::<22050, _>("../asset/hello_in_cn.mp3", false).await?;

@@ -14,6 +14,7 @@ use {
 /// # 示例
 /// ```
 /// use voxudio::ToneColorConverter;
+/// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
 /// let mut converter = ToneColorConverter::new("../checkpoint/tone_color_converter.onnx")?;
 /// let src_audio = vec![0f32; 22050];
@@ -42,7 +43,11 @@ impl ToneColorConverter {
     /// # 示例
     /// ```
     /// use voxudio::ToneColorConverter;
+    /// fn main() -> anyhow::Result<()> {
     /// let converter = ToneColorConverter::new("../checkpoint/tone_color_converter.onnx")?;
+    /// 
+    /// Ok(())
+    /// }
     /// ```
     pub fn new<P>(model_path: P) -> Result<Self, OperationError>
     where

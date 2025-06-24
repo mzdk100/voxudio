@@ -41,8 +41,9 @@ use {
 /// # 示例
 /// ```
 /// use voxudio::load_audio;
-/// async fn main() {
-/// let (samples, channels) = load_audio::<44100, _>("../hello_in_cn.mp3", false).await?;
+/// #[tokio::main]
+/// async fn main() -> anyhow::Result<()> {
+/// let (samples, channels) = load_audio::<44100, _>("../asset/hello_in_cn.mp3", false).await?;
 /// Ok(())
 /// }
 /// ```

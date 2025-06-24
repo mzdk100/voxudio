@@ -48,7 +48,11 @@ impl SpeakerEmbeddingExtractor {
     /// # 示例
     /// ```
     /// use voxudio::SpeakerEmbeddingExtractor;
+    /// fn main() -> anyhow::Result<()> {
     /// let extractor = SpeakerEmbeddingExtractor::new("../checkpoint/speaker_embedding_extractor.onnx")?;
+    /// 
+    /// Ok(())
+    /// }
     /// ```
     pub fn new<P>(model_path: P) -> Result<Self, OperationError>
     where

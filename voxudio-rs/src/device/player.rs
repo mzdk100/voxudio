@@ -97,8 +97,11 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let player = AudioPlayer::new()?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn new() -> Result<Self, OperationError> {
         let host = default_host();
@@ -133,9 +136,12 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let player = AudioPlayer::new()?;
     /// let name = player.get_name()?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn get_name(&self) -> Result<String, OperationError> {
         Ok(self.device.name()?)
@@ -149,9 +155,12 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let player = AudioPlayer::new()?;
     /// let channels = player.get_supported_stream_channels();
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn get_supported_stream_channels(&self) -> usize {
         self.supported_stream_config.channels() as _
@@ -165,9 +174,12 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let player = AudioPlayer::new()?;
     /// let sample_rate = player.get_supported_stream_sample_rate();
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn get_supported_stream_sample_rate(&self) -> usize {
         self.supported_stream_config.sample_rate().0 as _
@@ -187,9 +199,12 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let mut player = AudioPlayer::new()?;
     /// player.set_stream_channels(2)?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn set_stream_channels(&mut self, channels: usize) -> Result<(), OperationError> {
         self.stream_config.channels = channels as _;
@@ -210,9 +225,14 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let mut player = AudioPlayer::new()?;
-    /// player.set_stream_sample_rate(44100)?;
+    /// if let Ok(_) = player.set_stream_sample_rate(44100) {
+    /// println!("Set sample rate successfully.");
+    /// }
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn set_stream_sample_rate(&mut self, sample_rate: usize) -> Result<(), OperationError> {
         self.stream_config.sample_rate.0 = sample_rate as _;
@@ -227,9 +247,12 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let player = AudioPlayer::new()?;
     /// let channels = player.get_stream_channels();
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn get_stream_channels(&self) -> usize {
         self.stream_config.channels as _
@@ -243,9 +266,12 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let player = AudioPlayer::new()?;
     /// let sample_rate = player.get_stream_sample_rate();
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn get_stream_sample_rate(&self) -> usize {
         self.stream_config.sample_rate.0 as _
@@ -262,9 +288,12 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let player = AudioPlayer::new()?;
     /// player.play()?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn play(&self) -> Result<(), OperationError> {
         Ok(self.stream.play()?)
@@ -281,9 +310,12 @@ impl AudioPlayer {
     /// # 示例
     /// ```
     /// use voxudio::AudioPlayer;
-    ///
+    /// fn main() -> anyhow::Result<()> {
     /// let player = AudioPlayer::new()?;
     /// player.pause()?;
+    ///
+    /// Ok(())
+    /// }
     /// ```
     pub fn pause(&self) -> Result<(), OperationError> {
         Ok(self.stream.pause()?)
@@ -311,6 +343,7 @@ impl AudioPlayer {
     /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
     ///     let mut player = AudioPlayer::new()?;
+    /// player.play()?;
     ///     player.write::<44100>(&[0f32; 88200], 2).await?;
     ///     Ok(())
     /// }
