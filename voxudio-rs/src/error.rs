@@ -1,0 +1,187 @@
+use {
+    ndarray::ShapeError,
+    ort::Error as OrtError,
+    rodio::{
+        cpal::{
+            BuildStreamError, DefaultStreamConfigError, DeviceNameError, PauseStreamError,
+            PlayStreamError,
+        },
+        decoder::DecoderError,
+    },
+    std::{
+        error::Error,
+        fmt::{Display, Formatter, Result as FmtResult},
+        io::Error as IoError,
+        time::SystemTimeError,
+    },
+    tokio::sync::mpsc::error::SendError,
+};
+
+/// 操作过程中可能出现的错误类型
+#[derive(Debug)]
+pub enum OperationError {
+    BuildStream(BuildStreamError),
+    /// 音频解码错误
+    Decoder(DecoderError),
+    DefaultStreamConfig(DefaultStreamConfigError),
+    DeviceName(DeviceNameError),
+    /// 无效的输入数据
+    InputInvalid(String),
+    /// 输入数据过短
+    InputTooShort,
+    /// IO操作错误
+    Io(IoError),
+    NoDevice(String),
+    /// ONNX运行时错误
+    Ort(OrtError),
+    PauseStream(PauseStreamError),
+    PlayStream(PlayStreamError),
+    Send(SendError<f32>),
+    /// 数组形状错误
+    Shape(ShapeError),
+    /// 系统时间错误
+    SystemTime(SystemTimeError),
+}
+
+impl Clone for OperationError {
+    fn clone(&self) -> Self {
+        match self {
+            Self::BuildStream(e) => Self::BuildStream(match e {
+                BuildStreamError::DeviceNotAvailable => BuildStreamError::DeviceNotAvailable,
+                BuildStreamError::StreamConfigNotSupported => {
+                    BuildStreamError::StreamConfigNotSupported
+                }
+                BuildStreamError::InvalidArgument => BuildStreamError::InvalidArgument,
+                BuildStreamError::StreamIdOverflow => BuildStreamError::StreamIdOverflow,
+                BuildStreamError::BackendSpecific { err } => BuildStreamError::BackendSpecific {
+                    err: err.to_owned(),
+                },
+            }),
+            Self::Decoder(e) => Self::Decoder(e.to_owned()),
+            Self::DefaultStreamConfig(e) => Self::DefaultStreamConfig(match e {
+                DefaultStreamConfigError::DeviceNotAvailable => {
+                    DefaultStreamConfigError::DeviceNotAvailable
+                }
+                DefaultStreamConfigError::StreamTypeNotSupported => {
+                    DefaultStreamConfigError::StreamTypeNotSupported
+                }
+                DefaultStreamConfigError::BackendSpecific { err } => {
+                    DefaultStreamConfigError::BackendSpecific {
+                        err: err.to_owned(),
+                    }
+                }
+            }),
+            Self::DeviceName(e) => Self::DeviceName(e.to_owned()),
+            Self::InputInvalid(s) => Self::InputInvalid(s.to_owned()),
+            Self::InputTooShort => Self::InputTooShort,
+            Self::Io(e) => Self::Io(IoError::new(e.kind(), e.to_string())),
+            Self::NoDevice(s) => Self::NoDevice(s.to_owned()),
+            Self::Ort(e) => Self::Ort(OrtError::new(e.message())),
+            Self::PauseStream(e) => Self::PauseStream(match e {
+                PauseStreamError::DeviceNotAvailable => PauseStreamError::DeviceNotAvailable,
+                PauseStreamError::BackendSpecific { err } => PauseStreamError::BackendSpecific {
+                    err: err.to_owned(),
+                },
+            }),
+            Self::PlayStream(e) => Self::PlayStream(match e {
+                PlayStreamError::DeviceNotAvailable => PlayStreamError::DeviceNotAvailable,
+                PlayStreamError::BackendSpecific { err } => PlayStreamError::BackendSpecific {
+                    err: err.to_owned(),
+                },
+            }),
+            Self::Send(e) => Self::Send(*e),
+            Self::Shape(e) => Self::Shape(e.clone()),
+            Self::SystemTime(e) => Self::SystemTime(e.clone()),
+        }
+    }
+}
+
+impl Display for OperationError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "OperationError: ")?;
+        match self {
+            Self::BuildStream(e) => Display::fmt(e, f),
+            Self::Decoder(e) => Display::fmt(e, f),
+            Self::DefaultStreamConfig(e) => Display::fmt(e, f),
+            Self::DeviceName(e) => Display::fmt(e, f),
+            Self::InputInvalid(s) => write!(f, "InputInvalid: {}", s,),
+            Self::InputTooShort => write!(f, "InputTooShort: Input audio chunk is too short"),
+            Self::Io(e) => Display::fmt(e, f),
+            Self::NoDevice(s) => write!(f, "NoDevice: {}", s,),
+            Self::Ort(e) => Display::fmt(e, f),
+            Self::PauseStream(e) => Display::fmt(e, f),
+            Self::PlayStream(e) => Display::fmt(e, f),
+            Self::Send(e) => Display::fmt(e, f),
+            Self::Shape(e) => Display::fmt(e, f),
+            Self::SystemTime(e) => Display::fmt(e, f),
+        }
+    }
+}
+
+impl Error for OperationError {}
+
+impl From<ShapeError> for OperationError {
+    fn from(value: ShapeError) -> Self {
+        Self::Shape(value)
+    }
+}
+
+impl From<OrtError> for OperationError {
+    fn from(value: OrtError) -> Self {
+        Self::Ort(value)
+    }
+}
+
+impl From<SystemTimeError> for OperationError {
+    fn from(value: SystemTimeError) -> Self {
+        Self::SystemTime(value)
+    }
+}
+
+impl From<IoError> for OperationError {
+    fn from(value: IoError) -> Self {
+        Self::Io(value)
+    }
+}
+
+impl From<DecoderError> for OperationError {
+    fn from(value: DecoderError) -> Self {
+        Self::Decoder(value)
+    }
+}
+
+impl From<DeviceNameError> for OperationError {
+    fn from(value: DeviceNameError) -> Self {
+        Self::DeviceName(value)
+    }
+}
+
+impl From<DefaultStreamConfigError> for OperationError {
+    fn from(value: DefaultStreamConfigError) -> Self {
+        Self::DefaultStreamConfig(value)
+    }
+}
+
+impl From<BuildStreamError> for OperationError {
+    fn from(value: BuildStreamError) -> Self {
+        Self::BuildStream(value)
+    }
+}
+
+impl From<PlayStreamError> for OperationError {
+    fn from(value: PlayStreamError) -> Self {
+        Self::PlayStream(value)
+    }
+}
+
+impl From<PauseStreamError> for OperationError {
+    fn from(value: PauseStreamError) -> Self {
+        Self::PauseStream(value)
+    }
+}
+
+impl From<SendError<f32>> for OperationError {
+    fn from(value: SendError<f32>) -> Self {
+        Self::Send(value)
+    }
+}

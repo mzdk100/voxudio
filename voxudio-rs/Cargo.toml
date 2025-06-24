@@ -1,0 +1,21 @@
+[package]
+name = "voxudio"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[dependencies]
+ndarray = "0.16.1"
+ort = "2.0.0-rc.10"
+rodio = { version = "0.20.1", default-features = false, features = ["cpal-shared-stdcxx", "mp3", "wav"] }
+tokio = {version = "1.45.1", features = ["fs", "sync", "time"]}
+
+
+[dev-dependencies]
+anyhow = "1.0.98"
+rand = "0.9.1"
+tokio = { version = "1.45.1",features = ["macros", "rt-multi-thread"] }
+
+[workspace]
+members = ["examples/android"]
+resolver = "3"
