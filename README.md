@@ -38,6 +38,13 @@ voxudio/
 └── LICENSE             # 许可证文件
 ```
 
+## 模型文件
+
+由于模型文件较大，未包含在版本控制中。请从以下地址下载模型文件：
+https://github.com/mzdk100/voxudio/releases/tag/model
+
+下载后将模型文件放置在项目根目录的 `checkpoint` 文件夹中。
+
 ## 使用指南
 
 ### Python 实现

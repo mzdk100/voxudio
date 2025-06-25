@@ -23,6 +23,13 @@ Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处
     - Android 平台支持
     - iOS 平台尚未全面测试
 
+## 模型文件
+
+由于模型文件较大，未包含在版本控制中。请从以下地址下载模型文件：
+https://github.com/mzdk100/voxudio/releases/tag/model
+
+下载后将模型文件放置在项目根目录的 `checkpoint` 文件夹中。
+
 ## 安装
 
 将以下依赖添加到你的 `Cargo.toml` 文件中：

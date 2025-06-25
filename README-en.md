@@ -38,6 +38,13 @@ voxudio/
 └── LICENSE            # License file
 ```
 
+## Model Files
+
+Due to their large size, model files are not included in version control. Please download the model files from:
+https://github.com/mzdk100/voxudio/releases/tag/model
+
+After downloading, place the model files in the `checkpoint` folder in the project root directory.
+
 ## Usage Guide
 
 ### Python Implementation

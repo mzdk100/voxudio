@@ -23,6 +23,13 @@ Voxudio is a high-performance audio processing library written in Rust, focusing
     - Android platform support
     - iOS platform not fully tested yet
 
+## Model Files
+
+Due to their large size, model files are not included in version control. Please download the model files from:
+https://github.com/mzdk100/voxudio/releases/tag/model
+
+After downloading, place the model files in the `checkpoint` folder in the project root directory.
+
 ## Installation
 
 Add the following dependency to your `Cargo.toml` file:
