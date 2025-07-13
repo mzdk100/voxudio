@@ -1,13 +1,10 @@
 use {
     crate::OperationError,
-    rodio::{
-        buffer::SamplesBuffer,
-        cpal::{
-            BufferSize, Device, HostId, Stream, StreamConfig, SupportedStreamConfig, default_host,
-            traits::{DeviceTrait, HostTrait, StreamTrait},
-        },
-        source::UniformSourceIterator,
+    cpal::{
+        BufferSize, Device, HostId, Stream, StreamConfig, SupportedStreamConfig, default_host,
+        traits::{DeviceTrait, HostTrait, StreamTrait},
     },
+    rodio::{buffer::SamplesBuffer, source::UniformSourceIterator},
     std::{
         fmt::{Debug, Error as FmtError, Formatter, Result as FmtResult},
         io::{Error as IoError, ErrorKind},
@@ -40,7 +37,7 @@ use {
 /// collector.collect()?;
 /// let data = collector.read::<44100>(2).await?;
 /// collector.close();
-/// 
+///
 /// Ok(())
 /// }
 /// ```

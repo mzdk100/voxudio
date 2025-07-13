@@ -57,9 +57,7 @@ where
     let file = Cursor::new(read(audio_path).await?);
     let decoder = Decoder::new(file)?;
     let channels = if mono { 1 } else { decoder.channels() } as usize;
-    let samples =
-        UniformSourceIterator::new(decoder.convert_samples::<f32>(), channels as _, SR as _)
-            .collect::<Vec<f32>>();
+    let samples = UniformSourceIterator::new(decoder, channels as _, SR as _).collect::<Vec<f32>>();
 
     if samples.is_empty() {
         return Err(OperationError::InputInvalid("Audio is empty.".to_owned()));

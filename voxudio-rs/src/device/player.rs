@@ -1,13 +1,10 @@
 use {
     crate::OperationError,
-    rodio::{
-        buffer::SamplesBuffer,
-        cpal::{
-            BufferSize, Device, HostId, Stream, StreamConfig, SupportedStreamConfig, default_host,
-            traits::{DeviceTrait, HostTrait, StreamTrait},
-        },
-        source::UniformSourceIterator,
+    cpal::{
+        BufferSize, Device, HostId, Stream, StreamConfig, SupportedStreamConfig, default_host,
+        traits::{DeviceTrait, HostTrait, StreamTrait},
     },
+    rodio::{buffer::SamplesBuffer, source::UniformSourceIterator},
     std::{
         fmt::{Debug, Error as FmtError, Formatter, Result as FmtResult},
         mem::replace,

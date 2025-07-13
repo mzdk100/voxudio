@@ -9,6 +9,8 @@ Voxudio is a high-performance audio processing library written in Rust, focusing
 - 🎤 **Audio Device Management**
     - Audio Capture: Supports capturing data from various audio input devices
     - Audio Playback: Supports real-time audio playback
+- 🎵 **Audio Codec Support**
+    - OPUS: Supports encoding and decoding OPUS audio format
 - 🔍 **Voice Activity Detection (VAD)**
     - Real-time detection of speech activity in audio
     - Accurate distinction between speech and non-speech segments

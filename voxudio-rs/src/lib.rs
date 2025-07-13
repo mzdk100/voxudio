@@ -1,5 +1,5 @@
 //! # Voxudio
-//! 
+//!
 //! `voxudio` is a real-time audio processing library with ONNX runtime support.
 //! It provides a set of tools for audio device management, signal processing,
 //! and machine learning model integration for audio applications.
@@ -9,6 +9,7 @@
 //! - Audio device enumeration and management
 //! - Real-time audio processing capabilities
 //! - ONNX model integration for audio machine learning tasks
+//! - OPUS audio codec support (encoding/decoding)
 //! - Cross-platform support
 //!
 //! ## Example
@@ -26,14 +27,14 @@
 //!
 //!     // Load audio file
 //!     let (audio, channels) = load_audio::<22050, _>("asset/sample.wav", false).await?;
-//!     
+//!
 //!     // Detect speech segments
 //!     let vad_audio = vad.retain_speech_only::<22050>(&audio, channels).await?;
-//!     
+//!
 //!     // Extract speaker embedding
 //!     let embedding = see.extract(&vad_audio, channels).await?;
 //!     println!("Extracted embedding: {:?}", embedding);
-//!     
+//!
 //!     Ok(())
 //! }
 //! ```
@@ -43,9 +44,19 @@
 //!
 //! This project is licensed under the Apache License, Version 2.0.
 
+#[cfg(feature = "device")]
 mod device;
 mod error;
+#[cfg(feature = "model")]
 mod model;
+#[cfg(feature = "opus")]
+mod opus;
 mod utils;
 
-pub use {device::*, error::*, model::*, utils::*};
+#[cfg(feature = "device")]
+pub use device::*;
+#[cfg(feature = "model")]
+pub use model::*;
+#[cfg(feature = "opus")]
+pub use opus::*;
+pub use {error::*, utils::*};

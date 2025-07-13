@@ -1,6 +1,6 @@
 [package]
 name = "voxudio"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 license = "Apache-2.0"
 description = "A real-time audio processing library with ONNX runtime support"
@@ -10,15 +10,53 @@ keywords = ["audio", "processing", "onnx", "real-time", "machine-learning"]
 
 [dependencies]
 ndarray = "0.16.1"
-ort = "2.0.0-rc.10"
-rodio = { version = "0.20.1", default-features = false, features = ["cpal-shared-stdcxx", "mp3", "wav"] }
-tokio = {version = "1.45.1", features = ["fs", "sync", "time"]}
+rodio = { version = "0.21.0", default-features = false, features = ["mp3", "wav"] }
+tokio = {version = "1.46.1", features = ["fs", "sync", "time"]}
 
+[dependencies.ort]
+version = "2.0.0-rc.10"
+optional = true
+
+[dependencies.cpal]
+version = "=0.15.3"
+optional = true
+
+[build-dependencies]
+bindgen = "0.72.0"
+cc = "1.2.29"
 
 [dev-dependencies]
 anyhow = "1.0.98"
-rand = "0.9.1"
-tokio = { version = "1.45.1",features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.46.1",features = ["macros", "rt-multi-thread"] }
+
+[[example]]
+name = "tcc"
+required-features = ["model", "device"]
+
+[[example]]
+name = "vad"
+required-features = ["model", "device"]
+
+[[example]]
+name = "see"
+required-features = ["model"]
+
+[[example]]
+name = "ap"
+required-features = ["device"]
+
+[[example]]
+name = "ac"
+required-features = ["device"]
+
+[[example]]
+name = "oc"
+required-features = ["opus"]
+
+[features]
+device = ["cpal/oboe-shared-stdcxx"]
+model = ["ort/default"]
+opus = []
 
 [workspace]
 members = ["examples/android"]
