@@ -2,7 +2,7 @@
 
 [中文版本](README.md)
 
-Voxudio is a high-performance audio processing library written in Rust, focusing on speech processing and voice conversion capabilities. It provides a complete set of tools for audio capture, playback, voice activity detection, speaker feature extraction, and voice conversion.
+Voxudio is a high-performance audio processing library written in Rust, focusing on speech processing and voice conversion capabilities. It provides a complete set of tools for audio capture, playback, voice activity detection, speaker feature extraction, voice conversion and OPUS codec.
 
 ## Features
 
@@ -46,7 +46,8 @@ cargo add voxudio
 2. [Audio Playback](examples/ap.rs)
 3. [Voice Activity Detection](examples/vad.rs)
 4. [Tone Color Conversion](examples/tcc.rs)
-5. [Android Usage Example](examples/android)
+5. [OPUS Codec](examples/oc.rs)
+6. [Android Usage Example](examples/android)
    To run Android example:
     1. Ensure Android SDK and NDK are installed
     2. Navigate to examples/android directory

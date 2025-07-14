@@ -2,7 +2,7 @@
 
 [English Version](README-en.md)
 
-Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处理和音色转换功能。它提供了一套完整的工具，用于音频采集、播放、语音活动检测、说话人特征提取和音色转换。
+Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处理和音色转换功能。它提供了一套完整的工具，用于音频采集、播放、语音活动检测、说话人特征提取、音色转换和OPUS编解码。
 
 ## 特性
 
@@ -46,7 +46,8 @@ cargo add voxudio
 2. [音频播放](examples/ap.rs)
 3. [语音活动检测](examples/vad.rs)
 4. [音色转换](examples/tcc.rs)
-5. [Android 使用示例](examples/android)
+5. [OPUS编解码](examples/oc.rs)
+6. [Android 使用示例](examples/android)
    运行 Android 示例：
     1. 确保已安装 Android SDK 和 NDK
     2. 进入 examples/android 目录
