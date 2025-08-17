@@ -130,6 +130,7 @@ impl Display for OperationError {
             Self::InputInvalid(s) => write!(f, "InputInvalid: {}", s,),
             Self::InputTooShort => write!(f, "InputTooShort: Input audio chunk is too short"),
             Self::Io(e) => Display::fmt(e, f),
+            #[cfg(feature = "knf")]
             Self::Nul(e) => Display::fmt(e, f),
             Self::NoDevice(s) => write!(f, "NoDeviceError: {}", s,),
             Self::Opus(s) => write!(f, "OpusError: {}", s,),
