@@ -86,7 +86,7 @@ fn test_basic_encoding_decoding(
     encoder.set_complexity(10)?;
     encoder.set_bandwidth(OpusCodec::get_max_bandwidth_for_sample_rate(sample_rate))?;
 
-    let decoder = OpusDecoder::new(sample_rate, channels)?;
+    let decoder = OpusCodec::new_decoder(sample_rate, channels)?;
 
     println!("Encoding and decoding multiple frames...");
     let frame_count = 5;
@@ -129,7 +129,7 @@ fn test_basic_encoding_decoding(
 #[test]
 fn test_opus() -> anyhow::Result<()> {
     // Output Opus version information
-    println!("Opus version: {}", crate::opus::OpusCodec::version());
+    println!("Opus version: {}", OpusCodec::version());
 
     println!("\n=== Opus codec test - Basic encoding/decoding functionality ===");
 

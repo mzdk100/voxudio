@@ -2,7 +2,7 @@
 
 [中文版本](README.md)
 
-Voxudio is a high-performance audio processing library written in Rust, focusing on speech processing and voice conversion capabilities. It provides a complete set of tools for audio capture, playback, voice activity detection, speaker feature extraction, voice conversion and OPUS codec.
+Voxudio is a high-performance audio processing library written in Rust, focusing on speech processing and voice conversion capabilities. It provides a complete set of tools for audio capture, playback, voice activity detection, speaker feature extraction, voice conversion, OPUS codec and online feature extraction.
 
 ## Features
 
@@ -20,6 +20,9 @@ Voxudio is a high-performance audio processing library written in Rust, focusing
 - 🎭 **Tone Color Conversion (TCC)**
     - Real-time voice conversion
     - Preserves original speech content and emotion
+- 🧑‍🔬 **Online Feature Extractor (FBank/MFCC/Whisper FBank)**
+    - Supports real-time extraction of Filter Bank (FBank), Mel-Frequency Cepstral Coefficients (MFCC), and Whisper FBank features from audio signals
+    - Algorithms mainly based on [kaldi-native-fbank](https://github.com/csukuangfj/kaldi-native-fbank)
 - 📱 **Cross-platform Support**
     - Supports Windows, Linux, macOS
     - Android platform support
@@ -47,7 +50,8 @@ cargo add voxudio
 3. [Voice Activity Detection](examples/vad.rs)
 4. [Tone Color Conversion](examples/tcc.rs)
 5. [OPUS Codec](examples/oc.rs)
-6. [Android Usage Example](examples/android)
+6. [Online Feature Extraction](examples/offe.rs)
+7. [Android Usage Example](examples/android)
    To run Android example:
     1. Ensure Android SDK and NDK are installed
     2. Navigate to examples/android directory

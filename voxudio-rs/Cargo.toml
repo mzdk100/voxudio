@@ -10,24 +10,28 @@ keywords = ["audio", "processing", "onnx", "real-time", "machine-learning"]
 
 [dependencies]
 ndarray = "0.16.1"
-rodio = { version = "0.21.0", default-features = false, features = ["mp3", "wav"] }
-tokio = {version = "1.46.1", features = ["fs", "sync", "time"]}
+rodio = { version = "0.21.1", default-features = false, features = ["mp3", "wav"] }
+tokio = {version = "1.47.1", features = ["fs", "sync", "time"]}
 
 [dependencies.ort]
 version = "2.0.0-rc.10"
 optional = true
 
 [dependencies.cpal]
-version = "=0.15.3"
+version = "0.16.0"
 optional = true
 
 [build-dependencies]
 bindgen = "0.72.0"
-cc = "1.2.29"
+cc ="1.2.32"
 
 [dev-dependencies]
-anyhow = "1.0.98"
-tokio = { version = "1.46.1",features = ["macros", "rt-multi-thread"] }
+anyhow = "1.0.99"
+tokio = { version = "1.47.1",features = ["macros", "rt-multi-thread"] }
+
+[[example]]
+name = "asr"
+required-features = ["model"]
 
 [[example]]
 name = "tcc"
@@ -53,9 +57,14 @@ required-features = ["device"]
 name = "oc"
 required-features = ["opus"]
 
+[[example]]
+name = "offe"
+required-features = ["knf"]
+
 [features]
 device = ["cpal/oboe-shared-stdcxx"]
 model = ["ort/default"]
+knf = []
 opus = []
 
 [workspace]

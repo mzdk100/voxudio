@@ -1,7 +1,8 @@
 use std::{env::var, path::Path};
 
 // 收集所有源文件名到数组中
-const SOURCE_FILES: [&str; 128] = [
+//noinspection SpellCheckingInspection
+const SOURCE_FILES_OPUS: [&str; 128] = [
     // 基本文件
     "opus.c",
     "opus_decoder.c",
@@ -133,12 +134,23 @@ const SOURCE_FILES: [&str; 128] = [
     "float/noise_shape_analysis_FLP.c",
     "float/warped_autocorrelation_FLP.c",
 ];
+const SOURCE_FILES_KNF: [&str; 12] = [
+    "feature-fbank.cc",
+    "feature-window.cc",
+    "mel-computations.cc",
+    "rfft.cc",
+    "feature-functions.cc",
+    "kaldi-math.cc",
+    "kiss_fftr.c",
+    "kiss_fft.c",
+    "online-feature.cc",
+    "feature-mfcc.cc",
+    "whisper-feature.cc",
+    "knf.cc",
+];
 
-fn main() {
-    if !var("CARGO_CFG_FEATURE").unwrap().contains("opus") {
-        return;
-    }
-
+//noinspection SpellCheckingInspection
+fn compile_opus() {
     let out_dir = var("OUT_DIR").unwrap();
     if bindgen::builder()
         .header("src/opus/opus.h")
@@ -160,7 +172,7 @@ fn main() {
     build.include("src/opus").include("src/opus/float");
 
     // 添加所有源文件
-    for file in &SOURCE_FILES {
+    for file in &SOURCE_FILES_OPUS {
         build.file(src_path.join(file));
     }
 
@@ -170,4 +182,50 @@ fn main() {
         .define("NONTHREADSAFE_PSEUDOSTACK", None)
         .define("ENABLE_ASSERTIONS", None)
         .compile("opus")
+}
+
+fn compile_knf() {
+    let out_dir = var("OUT_DIR").unwrap();
+    if bindgen::builder()
+        .clang_arg("-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH")
+        .clang_args(["-x", "c++"])
+        .header("src/knf/knf.h")
+        .allowlist_item("knf::.*")
+        .opaque_type("std::.*")
+        .enable_cxx_namespaces()
+        .generate_comments(true)
+        .wrap_unsafe_ops(true)
+        .generate()
+        .unwrap()
+        .write_to_file(Path::new(&out_dir).join("knf.rs"))
+        .is_ok()
+    {
+        println!("cargo:rerun-if-changed=src/knf");
+        // 强制重新运行构建脚本
+        println!("cargo:rerun-if-changed=build.rs");
+    }
+
+    // 定义源文件基础路径
+    let src_path = Path::new("src/knf");
+
+    // 创建构建配置
+    let mut build = cc::Build::new();
+
+    // 添加所有源文件
+    for file in &SOURCE_FILES_KNF {
+        build.file(src_path.join(file));
+    }
+
+    // 编译
+    build.compile("knf")
+}
+
+fn main() {
+    let features = var("CARGO_CFG_FEATURE").unwrap();
+    if features.contains("opus") {
+        compile_opus();
+    }
+    if features.contains("knf") {
+        compile_knf();
+    }
 }

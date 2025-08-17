@@ -2,7 +2,7 @@
 
 [English Version](README-en.md)
 
-Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处理和音色转换功能。它提供了一套完整的工具，用于音频采集、播放、语音活动检测、说话人特征提取、音色转换和OPUS编解码。
+Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处理和音色转换功能。它提供了一套完整的工具，用于音频采集、播放、语音活动检测、说话人特征提取、音色转换、OPUS编解码和在线特征提取。
 
 ## 特性
 
@@ -20,6 +20,9 @@ Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处
 - 🎭 **音色转换 (TCC)**
     - 实时音色转换
     - 保持原始语音内容和情感
+- 🧑‍🔬 **在线特征提取器（FBank/MFCC/Whisper FBank）**
+    - 支持从音频信号中实时提取滤波器组（FBank）、梅尔频率倒谱系数（MFCC）、Whisper FBank 特征
+    - 算法主要来自 [kaldi-native-fbank](https://github.com/csukuangfj/kaldi-native-fbank)
 - 📱 **跨平台支持**
     - 支持 Windows、Linux、macOS
     - Android 平台支持
@@ -47,7 +50,8 @@ cargo add voxudio
 3. [语音活动检测](examples/vad.rs)
 4. [音色转换](examples/tcc.rs)
 5. [OPUS编解码](examples/oc.rs)
-6. [Android 使用示例](examples/android)
+6. [在线特征提取](examples/offe.rs)
+7. [Android 使用示例](examples/android)
    运行 Android 示例：
     1. 确保已安装 Android SDK 和 NDK
     2. 进入 examples/android 目录

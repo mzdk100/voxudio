@@ -4,6 +4,8 @@ use cpal::{
 };
 #[cfg(feature = "model")]
 use ort::Error as OrtError;
+#[cfg(feature = "knf")]
+use std::ffi::NulError;
 use {
     ndarray::ShapeError,
     rodio::decoder::DecoderError,
@@ -34,6 +36,8 @@ pub enum OperationError {
     /// IO操作错误
     Io(IoError),
     NoDevice(String),
+    #[cfg(feature = "knf")]
+    Nul(NulError),
     /// Opus编解码错误
     Opus(String),
     /// ONNX运行时错误
@@ -85,6 +89,8 @@ impl Clone for OperationError {
             Self::InputInvalid(s) => Self::InputInvalid(s.to_owned()),
             Self::InputTooShort => Self::InputTooShort,
             Self::Io(e) => Self::Io(IoError::new(e.kind(), e.to_string())),
+            #[cfg(feature = "knf")]
+            Self::Nul(e) => Self::Nul(e.to_owned()),
             Self::NoDevice(s) => Self::NoDevice(s.to_owned()),
             Self::Opus(s) => Self::Opus(s.to_owned()),
             #[cfg(feature = "model")]
@@ -124,6 +130,7 @@ impl Display for OperationError {
             Self::InputInvalid(s) => write!(f, "InputInvalid: {}", s,),
             Self::InputTooShort => write!(f, "InputTooShort: Input audio chunk is too short"),
             Self::Io(e) => Display::fmt(e, f),
+            Self::Nul(e) => Display::fmt(e, f),
             Self::NoDevice(s) => write!(f, "NoDeviceError: {}", s,),
             Self::Opus(s) => write!(f, "OpusError: {}", s,),
             #[cfg(feature = "model")]
@@ -210,5 +217,12 @@ impl From<PauseStreamError> for OperationError {
 impl From<SendError<f32>> for OperationError {
     fn from(value: SendError<f32>) -> Self {
         Self::Send(value)
+    }
+}
+
+#[cfg(feature = "knf")]
+impl From<NulError> for OperationError {
+    fn from(value: NulError) -> Self {
+        Self::Nul(value)
     }
 }
