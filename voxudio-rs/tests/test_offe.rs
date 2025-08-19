@@ -3,9 +3,7 @@ use voxudio::*;
 //noinspection SpellCheckingInspection
 #[test]
 fn test_offe() -> anyhow::Result<()> {
-    let input = (0..1600)
-        .map(|i| (i * i - i / 2) as f32 / 32767.)
-        .collect::<Vec<_>>();
+    let input = (0..1600).map(|i| f32::sin(i as _)).collect::<Vec<_>>();
 
     let fbank = OnlineFbankFeatureExtractor::fbank()?
         .with_frame_opts(Default::default())?

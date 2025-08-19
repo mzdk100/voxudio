@@ -11,6 +11,10 @@
 //! - ONNX model integration for audio machine learning tasks
 //! - OPUS audio codec support (encoding/decoding)
 //! - Online feature extraction (FBank, MFCC, Whisper FBank) based on kaldi-native-fbank
+//!   - Builder pattern with `with_*` methods for flexible parameter configuration (e.g., number of mel bins, window type, etc.)
+//! - Automatic Speech Recognition (ASR) API
+//!   - Provides `AutomaticSpeechRecognizer` for direct feature-to-text recognition
+//!   - All public APIs are documented with usage examples
 //! - Cross-platform support
 //!
 //! ## Example
@@ -57,6 +61,21 @@
 //!     let features = extractor.extract::<16000>(&audio);
 //!     println!("FBank features: {:?}", features);
 //!
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ### Automatic Speech Recognition example
+//! ```rust,no_run
+//! use voxudio::*;
+//! use anyhow::Result;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<()> {
+//!     let mut asr = AutomaticSpeechRecognizer::new("checkpoint/automatic_speech_recognizer.onnx")?;
+//!     let features = vec![0.0; AutomaticSpeechRecognizer::NUM_BINS as usize * 10]; // Assume features are extracted
+//!     let text = asr.recognize(&features).await?;
+//!     println!("{}", text);
 //!     Ok(())
 //! }
 //! ```

@@ -415,9 +415,7 @@ impl FbankOptions for raw::knf::WhisperFeatureOptions {
 ///     .with_energy_floor(1.0)
 ///     .build()?;
 /// // 提取特征
-/// let audio = (0..1600)
-///     .map(|i| (i * i - i / 2) as f32 / 32767.)
-///     .collect::<Vec<_>>();
+/// let audio = (0..1600).map(|i| f32::sin(i as _)).collect::<Vec<_>>();
 /// let features = extractor.extract::<16000>(&audio);
 /// Ok(())
 /// }
@@ -464,12 +462,13 @@ impl OnlineFbankFeatureExtractor {
     }
 }
 
+//noinspection SpellCheckingInspection
 impl<O> OnlineFbankFeatureExtractor<O> {
     /// 提取音频特征。
     ///
     /// # 参数
     /// * `SR` - 采样率（常用如 16000）。
-    /// * `input` - 音频数据（f32 数组）。
+    /// * `audio` - 音频数据（f32 数组，-1.0到1.0之间）。
     ///
     /// # 返回
     /// 特征向量（Vec<f32>）。
@@ -479,19 +478,18 @@ impl<O> OnlineFbankFeatureExtractor<O> {
     /// use voxudio::OnlineFbankFeatureExtractor;
     /// fn main() -> anyhow::Result<()> {
     /// let extractor = OnlineFbankFeatureExtractor::new()?;
-    /// let audio = (0..1600)
-    ///     .map(|i| (i * i - i / 2) as f32 / 32767.)
-    ///     .collect::<Vec<_>>();
+    /// let audio = (0..1600).map(|i| f32::sin(i as _)).collect::<Vec<_>>();
     /// let features = extractor.extract::<16000>(&audio);
     /// Ok(())
     /// }
     /// ```
-    pub fn extract<const SR: usize>(&self, input: &[f32]) -> Vec<f32>
+    pub fn extract<const SR: usize>(&self, audio: &[f32]) -> Vec<f32>
     where
         O: FbankOptions,
     {
+        let audio = audio.iter().map(|i| i * 32768f32).collect::<Vec<_>>();
         let mut ret = 0;
-        let ptr = self.opts.run::<SR>(input, &mut ret);
+        let ptr = self.opts.run::<SR>(&audio, &mut ret);
         unsafe {
             let res = from_raw_parts(ptr, ret as _).to_owned();
             raw::knf::free_result(ptr);

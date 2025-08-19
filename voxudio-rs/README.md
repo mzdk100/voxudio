@@ -2,7 +2,7 @@
 
 [English Version](README-en.md)
 
-Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处理和音色转换功能。它提供了一套完整的工具，用于音频采集、播放、语音活动检测、说话人特征提取、音色转换、OPUS编解码和在线特征提取。
+Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处理和音色转换功能。它提供了一套完整的工具，用于音频采集、播放、语音活动检测、说话人特征提取、音色转换、OPUS编解码、在线特征提取和语音识别。
 
 ## 特性
 
@@ -23,6 +23,9 @@ Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处
 - 🧑‍🔬 **在线特征提取器（FBank/MFCC/Whisper FBank）**
     - 支持从音频信号中实时提取滤波器组（FBank）、梅尔频率倒谱系数（MFCC）、Whisper FBank 特征
     - 算法主要来自 [kaldi-native-fbank](https://github.com/csukuangfj/kaldi-native-fbank)
+    - 支持通过 builder 的 `with_*` 方法灵活配置参数（如梅尔滤波器组数、窗函数类型等）
+- 🗣️ **自动语音识别（ASR）**
+    - 提供 AutomaticSpeechRecognizer API，可直接输入特征并获得识别文本
 - 📱 **跨平台支持**
     - 支持 Windows、Linux、macOS
     - Android 平台支持
@@ -51,7 +54,8 @@ cargo add voxudio
 4. [音色转换](examples/tcc.rs)
 5. [OPUS编解码](examples/oc.rs)
 6. [在线特征提取](examples/offe.rs)
-7. [Android 使用示例](examples/android)
+7. [自动语音识别](examples/asr.rs)
+8. [Android 使用示例](examples/android)
    运行 Android 示例：
     1. 确保已安装 Android SDK 和 NDK
     2. 进入 examples/android 目录
@@ -66,7 +70,7 @@ cargo add voxudio
 
 ## 性能优化
 
-- 使用 ONNX Runtime 进行高效的模型推理
+- 使用 ONNX Runtime 进行高效��模型推理
 - 基于 Tokio 的异步处理
 - 优化的音频数据处理流程
 
