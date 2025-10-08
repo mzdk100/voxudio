@@ -25,7 +25,7 @@
 #include <cstddef>
 #include <utility>
 #include <vector>
-
+#include <iostream>
 #include "feature-window.h"
 #include "log.h"
 
@@ -127,9 +127,7 @@ void OnlineGenericBaseFeature<C>::ComputeFeatures() {
     ExtractWindow(waveform_offset_, waveform_remainder_, frame, frame_opts,
                   window_function_, &window,
                   need_raw_log_energy ? &raw_log_energy : nullptr);
-
     std::vector<float> this_feature(computer_.Dim());
-
     computer_.Compute(raw_log_energy, vtln_warp, &window, this_feature.data());
     features_.PushBack(std::move(this_feature));
   }

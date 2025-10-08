@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <limits>
 #include <vector>
-
+#include <iostream>
 #include "kaldi-math.h"
 
 namespace knf {
@@ -196,7 +196,6 @@ void ExtractWindow(int64_t sample_offset, const std::vector<float> &wave,
       (*window)[s] = wave[s_in_wave];
     }
   }
-
   ProcessWindow(opts, window_function, window->data(), log_energy_pre_window);
 }
 

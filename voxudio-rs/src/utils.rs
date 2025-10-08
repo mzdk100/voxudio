@@ -5,6 +5,7 @@
 //! # 主要功能
 //! - `load_audio`: 从文件加载音频数据并转换为指定采样率和声道数
 //! - `resample`: 对音频数据进行重采样处理
+//! - `spatial_audio`: 生成空间音频
 //!
 //! # 错误处理
 //! 使用`OperationError`作为统一的错误类型
@@ -22,7 +23,11 @@
 
 use {
     crate::OperationError,
-    rodio::{Decoder, Source, buffer::SamplesBuffer, source::UniformSourceIterator},
+    rodio::{
+        Decoder, Source,
+        buffer::SamplesBuffer,
+        source::{Spatial, UniformSourceIterator},
+    },
     std::{io::Cursor, path::Path},
     tokio::fs::read,
 };
@@ -81,7 +86,7 @@ where
 /// # 示例
 /// ```
 /// use voxudio::resample;
-/// let samples = vec![1.0, 2.0, 3.0, 4.0];
+/// let samples = vec![0.1, 0.2, 0.3, 0.4];
 /// let resampled = resample::<44100, 48000>(&samples, 1, 2);
 /// ```
 pub fn resample<const SSR: usize, const TSR: usize>(
@@ -97,6 +102,47 @@ pub fn resample<const SSR: usize, const TSR: usize>(
         SamplesBuffer::new(src_channels as _, SSR as _, samples),
         tgt_channels as _,
         TSR as _,
+    )
+    .collect()
+}
+
+/// 对音频数据进行空间化处理（3D音效）
+///
+/// # 参数
+/// - `SR`: 采样率
+/// - `audio`: 样本数组，双声道样本交错排列
+/// - `channels`: 声道数量
+/// - `emitter_position`: 声源位置坐标[x, y, z]
+/// - `left_ear`: 左耳位置坐标[x, y, z]
+/// - `right_ear`: 右耳位置坐标[x, y, z]
+///
+/// # 返回
+/// `Vec<f32>`: 空间化处理后的样本数组
+///
+/// # 示例
+/// ```
+/// use voxudio::spatial_audio;
+/// let samples = vec![0.1, 0.2, 0.3, 0.4];
+/// let processed = spatial_audio::<44100>(
+///     &samples,
+///     2,
+///     [0.0, 0.0, 0.0],
+///     [-0.1, 0.0, 0.0],
+///     [0.1, 0.0, 0.0]
+/// );
+/// ```
+pub fn spatial_audio<const SR: usize>(
+    audio: &[f32],
+    channels: usize,
+    emitter_position: [f32; 3],
+    left_ear: [f32; 3],
+    right_ear: [f32; 3],
+) -> Vec<f32> {
+    Spatial::new(
+        SamplesBuffer::new(channels as _, SR as _, audio),
+        emitter_position,
+        left_ear,
+        right_ear,
     )
     .collect()
 }

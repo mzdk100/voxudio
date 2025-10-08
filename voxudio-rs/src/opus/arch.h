@@ -121,7 +121,7 @@ void celt_fatal(const char *str, const char *file, int line)
 /* Set this if opus_int64 is a native type of the CPU. */
 /* Assume that all LP64 architectures have fast 64-bit types; also x86_64
    (which can be ILP32 for x32) and Win64 (which is LLP64). */
-#if defined(__x86_64__) || defined(__LP64__) || defined(_WIN64)
+#if defined(__x86_64__) || defined(__LP64__) || defined(_WIN64) || defined (__mips)
 #define OPUS_FAST_INT64 1
 #else
 #define OPUS_FAST_INT64 0
@@ -152,7 +152,7 @@ typedef opus_val32 opus_res;
 #define SIG2RES(a)      PSHR32(a, SIG_SHIFT-RES_SHIFT)
 #define RES2INT16(a)    SAT16(PSHR32(a, RES_SHIFT))
 #define RES2INT24(a)    (a)
-#define RES2FLOAT(a)    ((1.f/32768.f/256.)*(a))
+#define RES2FLOAT(a)    ((1.f/32768.f/256.f)*(a))
 #define INT16TORES(a)   SHL32(EXTEND32(a), RES_SHIFT)
 #define INT24TORES(a)   (a)
 #define ADD_RES(a, b)   ADD32(a, b)
@@ -374,7 +374,7 @@ static OPUS_INLINE int celt_isnan(float x)
 #define RES2INT24(a)    float2int(32768.f*256.f*(a))
 #define RES2FLOAT(a)    (a)
 #define INT16TORES(a)   ((a)*(1/CELT_SIG_SCALE))
-#define INT24TORES(a)   ((1.f/32768.f/256.)*(a))
+#define INT24TORES(a)   ((1.f/32768.f/256.f)*(a))
 #define ADD_RES(a, b)   ADD32(a, b)
 #define FLOAT2RES(a)    (a)
 #define RES2SIG(a)      (CELT_SIG_SCALE*(a))

@@ -13,7 +13,7 @@ fn get_session_builder() -> Result<SessionBuilder, OperationError> {
     let builder = Session::builder()?;
     #[cfg(target_os = "android")]
     let builder = builder.with_execution_providers(&[
-        ort::execution_providers::NNAPIExecutionProvider::default().build(),
+        ort::execution_providers::WebGPUExecutionProvider::default().build(),
     ])?;
 
     Ok(builder)
