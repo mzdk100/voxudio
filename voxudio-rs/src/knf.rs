@@ -9,6 +9,11 @@ fn create_string(text: &str) -> Result<raw::std::string, OperationError> {
     Ok(unsafe { raw::knf::create_string(CString::new(text)?.into_raw()) })
 }
 
+pub type OnlineMfccFeatureExtractor = OnlineFbankFeatureExtractor<raw::knf::MfccOptions>;
+//noinspection SpellCheckingInspection
+pub type OnlineWhisperFbankFeatureExtractor =
+    OnlineFbankFeatureExtractor<raw::knf::WhisperFeatureOptions>;
+
 //noinspection SpellCheckingInspection
 pub struct FrameExtractionOptions<'a> {
     /// in milliseconds.
@@ -223,9 +228,7 @@ impl OnlineFbankFeatureExtractorBuilder {
         self
     }
 
-    pub fn build(
-        &self,
-    ) -> Result<OnlineFbankFeatureExtractor<raw::knf::FbankOptions>, OperationError> {
+    pub fn build(&self) -> Result<OnlineFbankFeatureExtractor, OperationError> {
         Ok(OnlineFbankFeatureExtractor::from(self.opts))
     }
 }
@@ -319,9 +322,7 @@ impl OnlineMfccFeatureExtractorBuilder {
         self
     }
 
-    pub fn build(
-        &self,
-    ) -> Result<OnlineFbankFeatureExtractor<raw::knf::MfccOptions>, OperationError> {
+    pub fn build(&self) -> Result<OnlineMfccFeatureExtractor, OperationError> {
         Ok(OnlineFbankFeatureExtractor::from(self.opts))
     }
 }
@@ -357,9 +358,7 @@ impl OnlineWhisperFbankFeatureExtractorBuilder {
         self
     }
 
-    pub fn build(
-        &self,
-    ) -> Result<OnlineFbankFeatureExtractor<raw::knf::WhisperFeatureOptions>, OperationError> {
+    pub fn build(&self) -> Result<OnlineWhisperFbankFeatureExtractor, OperationError> {
         Ok(OnlineFbankFeatureExtractor::from(self.opts))
     }
 }
@@ -457,7 +456,7 @@ impl OnlineFbankFeatureExtractor {
 
     /// 构建默认 FBank 特征提取器。
     /// 等价于 `Self::fbank()?.build()`。
-    pub fn new() -> Result<OnlineFbankFeatureExtractor<raw::knf::FbankOptions>, OperationError> {
+    pub fn new() -> Result<OnlineFbankFeatureExtractor, OperationError> {
         Self::fbank()?.build()
     }
 }
