@@ -96,7 +96,7 @@ class SpeakerEmbeddingExtractor(nn.Module):
     def forward(self, audio):
         interval = self.sampling_rate * 10
         gs = []
-        for i in range(0, len(audio), interval):
+        for i in range(0, audio.shape[0], interval):
             ref_audio = audio[i : i + interval, ...]
             gs.append(self.forward_inner(ref_audio.T.unsqueeze(0)))
         return stack(gs).mean(0).squeeze(2)
