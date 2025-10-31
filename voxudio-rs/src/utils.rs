@@ -146,3 +146,66 @@ pub fn spatial_audio<const SR: usize>(
     )
     .collect()
 }
+
+/// 对音频数据添加房间混响效果
+///
+/// # 参数
+/// - `SR`: 采样率
+/// - `audio`: 样本数组，双声道样本交错排列
+/// - `channels`: 声道数量
+/// - `room_size`: 房间大小系数 (0.0-1.0)
+/// - `damping`: 高频衰减系数 (0.0-1.0)
+/// - `wet`: 混响强度 (0.0-1.0)
+///
+/// # 返回
+/// `Vec<f32>`: 添加混响后的样本数组
+///
+/// # 示例
+/// ```
+/// use voxudio::reverb;
+/// let samples = vec![0.1, 0.2, 0.3, 0.4];
+/// let processed = reverb::<44100>(&samples, 2, 0.7, 0.5, 0.3);
+/// ```
+pub fn reverb<const SR: usize>(
+    audio: &[f32],
+    channels: usize,
+    room_size: f32,
+    damping: f32,
+    wet: f32,
+) -> Vec<f32> {
+    if audio.is_empty() || channels == 0 {
+        return Vec::new();
+    }
+
+    let mut output = vec![0.0; audio.len()];
+    let mut delay_lines = vec![vec![0.0; (SR as f32 * 0.1) as usize]; 8]; // 8个延迟线
+    let mut delay_pos = vec![0; 8];
+    let delay_lengths = [
+        (SR as f32 * 0.0297) as usize,
+        (SR as f32 * 0.0371) as usize,
+        (SR as f32 * 0.0411) as usize,
+        (SR as f32 * 0.0437) as usize,
+        (SR as f32 * 0.005) as usize,
+        (SR as f32 * 0.0157) as usize,
+        (SR as f32 * 0.0201) as usize,
+        (SR as f32 * 0.0263) as usize,
+    ];
+
+    for i in 0..audio.len() {
+        let sample = audio[i];
+        let mut reverb_sample = 0.0;
+
+        // 处理8个延迟线
+        for j in 0..8 {
+            let delayed = delay_lines[j][delay_pos[j]];
+            reverb_sample += delayed * 0.125; // 平均分配
+            delay_lines[j][delay_pos[j]] = sample + delayed * damping;
+            delay_pos[j] = (delay_pos[j] + 1) % delay_lengths[j];
+        }
+
+        // 混合原始信号和混响信号
+        output[i] = sample * (1.0 - wet) + reverb_sample * wet * room_size;
+    }
+
+    output
+}
