@@ -371,7 +371,7 @@ pub trait FbankOptions {
 impl FbankOptions for raw::knf::FbankOptions {
     fn run<const SR: usize>(&self, input: &[f32], len: &mut i32) -> *mut f32 {
         unsafe {
-            raw::knf::fbank_extract(*self, SR as _, input.as_ptr() as _, input.len() as _, len)
+            raw::knf::fbank_extract(self as *const _, SR as _, input.as_ptr() as _, input.len() as _, len)
         }
     }
 }
@@ -379,7 +379,7 @@ impl FbankOptions for raw::knf::FbankOptions {
 impl FbankOptions for raw::knf::MfccOptions {
     fn run<const SR: usize>(&self, input: &[f32], len: &mut i32) -> *mut f32 {
         unsafe {
-            raw::knf::mfcc_extract(*self, SR as _, input.as_ptr() as _, input.len() as _, len)
+            raw::knf::mfcc_extract(self as *const _, SR as _, input.as_ptr() as _, input.len() as _, len)
         }
     }
 }
@@ -388,7 +388,7 @@ impl FbankOptions for raw::knf::WhisperFeatureOptions {
     fn run<const SR: usize>(&self, input: &[f32], len: &mut i32) -> *mut f32 {
         unsafe {
             raw::knf::whisper_fbank_extract(
-                *self,
+                self as *const _,
                 SR as _,
                 input.as_ptr() as _,
                 input.len() as _,
