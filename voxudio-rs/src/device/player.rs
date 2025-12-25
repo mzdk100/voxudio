@@ -179,7 +179,7 @@ impl AudioPlayer {
     /// }
     /// ```
     pub fn get_supported_stream_sample_rate(&self) -> usize {
-        self.supported_stream_config.sample_rate().0 as _
+        self.supported_stream_config.sample_rate() as _
     }
 
     /// 设置音频流通道数
@@ -232,7 +232,7 @@ impl AudioPlayer {
     /// }
     /// ```
     pub fn set_stream_sample_rate(&mut self, sample_rate: usize) -> Result<(), OperationError> {
-        self.stream_config.sample_rate.0 = sample_rate as _;
+        self.stream_config.sample_rate = sample_rate as _;
         self.update_stream()
     }
 
@@ -271,7 +271,7 @@ impl AudioPlayer {
     /// }
     /// ```
     pub fn get_stream_sample_rate(&self) -> usize {
-        self.stream_config.sample_rate.0 as _
+        self.stream_config.sample_rate as _
     }
 
     /// 开始播放或恢复暂停的音频
@@ -354,7 +354,7 @@ impl AudioPlayer {
             let iter = UniformSourceIterator::new(
                 SamplesBuffer::new(channels as _, SR as _, samples),
                 self.stream_config.channels,
-                self.stream_config.sample_rate.0,
+                self.stream_config.sample_rate,
             );
             for i in iter {
                 self.sender.send(i).await?;

@@ -187,7 +187,7 @@ impl AudioCollector {
     /// }
     /// ```
     pub fn get_supported_stream_sample_rate(&self) -> usize {
-        self.supported_stream_config.sample_rate().0 as _
+        self.supported_stream_config.sample_rate() as _
     }
 
     /// 设置音频流通道数
@@ -242,7 +242,7 @@ impl AudioCollector {
     /// }
     /// ```
     pub fn set_stream_sample_rate(&mut self, sample_rate: usize) -> Result<(), OperationError> {
-        self.stream_config.sample_rate.0 = sample_rate as _;
+        self.stream_config.sample_rate = sample_rate as _;
         self.update_stream()
     }
 
@@ -275,7 +275,7 @@ impl AudioCollector {
     /// }
     /// ```
     pub fn get_stream_sample_rate(&self) -> usize {
-        self.stream_config.sample_rate.0 as _
+        self.stream_config.sample_rate as _
     }
 
     /// 开始采集或恢复暂停的音频
