@@ -141,7 +141,7 @@ impl AudioPlayer {
     /// }
     /// ```
     pub fn get_name(&self) -> Result<String, OperationError> {
-        Ok(self.device.name()?)
+        Ok(self.device.description()?.name().to_owned())
     }
 
     /// 获取支持的音频流通道数
