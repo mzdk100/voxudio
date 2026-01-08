@@ -1,6 +1,6 @@
 [package]
 name = "voxudio"
-version = "0.5.3"
+version = "0.5.4"
 edition = "2024"
 license = "Apache-2.0"
 description = "A real-time audio processing library with ONNX runtime support"
@@ -9,25 +9,25 @@ repository = "https://github.com/mzdk100/voxudio"
 keywords = ["audio", "processing", "onnx", "real-time", "machine-learning"]
 
 [dependencies]
-ndarray = "0.16.1"
+ndarray = "0.17.1"
 rodio = { version = "0.21.1", default-features = false, features = ["mp3", "wav"] }
-tokio = {version = "1.48.0", features = ["fs", "sync", "time"]}
+tokio = {version = "1.49.0", features = ["fs", "sync", "time"]}
 
 [dependencies.ort]
-version = "2.0.0-rc.10"
+version = "2.0.0-rc.11"
 optional = true
 
 [dependencies.cpal]
-version = "0.17.0"
+version = "0.17.1"
 optional = true
 
 [build-dependencies]
 bindgen = "0.72.1"
-cc ="1.2.50"
+cc ="1.2.51"
 
 [dev-dependencies]
 anyhow = "1.0.100"
-tokio = { version = "1.48.0",features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.49.0",features = ["macros", "rt-multi-thread"] }
 
 [[example]]
 name = "asr"
@@ -62,7 +62,7 @@ name = "offe"
 required-features = ["knf"]
 
 [features]
-device = []
+device = ["cpal"]
 model = ["ort/default"]
 knf = []
 opus = []

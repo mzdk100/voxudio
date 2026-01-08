@@ -75,21 +75,21 @@ impl AutomaticSpeechRecognizer {
     pub async fn recognize(&mut self, features: &[f32]) -> Result<String, OperationError> {
         let meta_data = self.model.metadata()?;
         let lfr_window_size = meta_data
-            .custom("lfr_window_size")?
+            .custom("lfr_window_size")
             .map_or(Ok(0), |s| s.parse())
             .unwrap_or_default();
         let lfr_window_shift = meta_data
-            .custom("lfr_window_shift")?
+            .custom("lfr_window_shift")
             .map_or(Ok(0), |s| s.parse())
             .unwrap_or_default();
         let neg_mean = meta_data
-            .custom("neg_mean")?
+            .custom("neg_mean")
             .unwrap_or_default()
             .split(',')
             .filter_map(|i| i.trim().parse::<f32>().ok())
             .collect::<Vec<_>>();
         let inv_stddev = meta_data
-            .custom("inv_stddev")?
+            .custom("inv_stddev")
             .unwrap_or_default()
             .split(',')
             .filter_map(|i| i.trim().parse::<f32>().ok())
