@@ -1,6 +1,6 @@
 [package]
 name = "voxudio"
-version = "0.5.5"
+version = "0.5.6"
 edition = "2024"
 license = "Apache-2.0"
 description = "A real-time audio processing library with ONNX runtime support"
@@ -23,7 +23,7 @@ optional = true
 
 [build-dependencies]
 bindgen = "0.72.1"
-cc ="1.2.51"
+cc ="1.2.52"
 
 [dev-dependencies]
 anyhow = "1.0.100"

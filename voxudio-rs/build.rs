@@ -1,3 +1,4 @@
+use std::env::set_var;
 use std::{env::var, path::Path};
 
 // 收集所有源文件名到数组中
@@ -186,6 +187,29 @@ fn compile_opus() {
 
 fn compile_knf() {
     let out_dir = var("OUT_DIR").unwrap();
+
+    // 定义源文件基础路径
+    let src_path = Path::new("src/knf");
+
+    // 创建构建配置
+    let mut build = cc::Build::new();
+
+    // 添加所有源文件
+    for file in &SOURCE_FILES_KNF {
+        build.file(src_path.join(file));
+    }
+
+    // 编译
+    build.compile("knf");
+
+    if var("CARGO_CFG_TARGET_OS").as_deref() == Ok("android") {
+        let compiler = build.get_compiler();
+        let compiler_path = compiler.path();
+        unsafe {
+            set_var("CLANG_PATH", compiler_path);
+        }
+    }
+
     if bindgen::builder()
         .clang_arg("-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH")
         .clang_args(["-x", "c++"])
@@ -204,20 +228,6 @@ fn compile_knf() {
         // 强制重新运行构建脚本
         println!("cargo:rerun-if-changed=build.rs");
     }
-
-    // 定义源文件基础路径
-    let src_path = Path::new("src/knf");
-
-    // 创建构建配置
-    let mut build = cc::Build::new();
-
-    // 添加所有源文件
-    for file in &SOURCE_FILES_KNF {
-        build.file(src_path.join(file));
-    }
-
-    // 编译
-    build.compile("knf")
 }
 
 fn main() {
