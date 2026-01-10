@@ -50,6 +50,32 @@ impl AutomaticSpeechRecognizer {
         Ok(Self { model })
     }
 
+    fn get_metadata(&self) -> Result<(i32, i32, Vec<f32>, Vec<f32>), OperationError> {
+        let meta_data = self.model.metadata()?;
+        let lfr_window_size = meta_data
+            .custom("lfr_window_size")
+            .map_or(Ok(0), |s| s.parse())
+            .unwrap_or_default();
+        let lfr_window_shift = meta_data
+            .custom("lfr_window_shift")
+            .map_or(Ok(0), |s| s.parse())
+            .unwrap_or_default();
+        let neg_mean = meta_data
+            .custom("neg_mean")
+            .unwrap_or_default()
+            .split(',')
+            .filter_map(|i| i.trim().parse::<f32>().ok())
+            .collect::<Vec<_>>();
+        let inv_stddev = meta_data
+            .custom("inv_stddev")
+            .unwrap_or_default()
+            .split(',')
+            .filter_map(|i| i.trim().parse::<f32>().ok())
+            .collect::<Vec<_>>();
+
+        Ok((lfr_window_size, lfr_window_shift, neg_mean, inv_stddev))
+    }
+
     /// 识别输入的FBank特征，返回识别文本。
     ///
     /// # 参数
@@ -73,28 +99,7 @@ impl AutomaticSpeechRecognizer {
     /// # }
     /// ```
     pub async fn recognize(&mut self, features: &[f32]) -> Result<String, OperationError> {
-        let meta_data = self.model.metadata()?;
-        let lfr_window_size = meta_data
-            .custom("lfr_window_size")
-            .map_or(Ok(0), |s| s.parse())
-            .unwrap_or_default();
-        let lfr_window_shift = meta_data
-            .custom("lfr_window_shift")
-            .map_or(Ok(0), |s| s.parse())
-            .unwrap_or_default();
-        let neg_mean = meta_data
-            .custom("neg_mean")
-            .unwrap_or_default()
-            .split(',')
-            .filter_map(|i| i.trim().parse::<f32>().ok())
-            .collect::<Vec<_>>();
-        let inv_stddev = meta_data
-            .custom("inv_stddev")
-            .unwrap_or_default()
-            .split(',')
-            .filter_map(|i| i.trim().parse::<f32>().ok())
-            .collect::<Vec<_>>();
-        drop(meta_data);
+        let (lfr_window_size, lfr_window_shift, neg_mean, inv_stddev) = self.get_metadata()?;
         let feat_dim = (Self::NUM_BINS * lfr_window_size) as usize;
 
         // 1. Apply LFR
@@ -131,7 +136,7 @@ impl AutomaticSpeechRecognizer {
             .find(|i| i.1 == &"</s>")
             .map_or(0, |i| i.0);
 
-        let mut res = String::with_capacity(num_tokens * std::mem::size_of::<char>());
+        let mut res = String::with_capacity(num_tokens * size_of::<char>());
         let mut mergeable = false;
         let mut last_sym: Option<&str> = None;
         for k in 0..num_tokens {
