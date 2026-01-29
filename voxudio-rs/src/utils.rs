@@ -12,9 +12,10 @@
 //!
 //! # 示例
 //! ```
-//! use voxudio::{load_audio,resample};
+//! use voxudio::{decode_audio,resample};
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
+//! use voxudio::load_audio;
 //! let (audio, channels) = load_audio::<44100, _>("../asset/hello_in_cn.mp3", false).await?;
 //! let resampled = resample::<44100, 48000>(&audio, channels, 2);
 //! Ok(())
@@ -59,7 +60,36 @@ pub async fn load_audio<const SR: usize, P>(
 where
     P: AsRef<Path>,
 {
-    let file = Cursor::new(read(audio_path).await?);
+    decode_audio::<SR, _>(read(audio_path).await?, mono)
+}
+
+/// 解码音频数据
+///
+/// # 参数
+/// - `SR`: 目标采样率
+/// - `D`: 音频数据类型，需实现`AsRef<[u8]> + Send + Sync + 'static`
+/// - `audio_data`: 音频数据字节数组
+/// - `mono`: 是否转换为单声道
+///
+/// # 返回
+/// `Result<(Vec<f32>, usize), OperationError>`: 样本数组和声道数量（双声道样本交错排列），或者错误
+///
+/// # 示例
+/// ```
+/// use voxudio::decode_audio;
+/// fn main() -> anyhow::Result<()> {
+///     let (samples, channels) = decode_audio::<44100, _>(include_bytes!("../../asset/hello_in_cn.mp3"), false)?;
+///     Ok(())
+/// }
+/// ```
+pub fn decode_audio<const SR: usize, D>(
+    audio_data: D,
+    mono: bool,
+) -> Result<(Vec<f32>, usize), OperationError>
+where
+    D: AsRef<[u8]> + Send + Sync + 'static,
+{
+    let file = Cursor::new(audio_data);
     let decoder = Decoder::new(file)?;
     let channels = if mono { 1 } else { decoder.channels() } as usize;
     let samples = UniformSourceIterator::new(decoder, channels as _, SR as _).collect::<Vec<f32>>();

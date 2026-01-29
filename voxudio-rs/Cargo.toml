@@ -1,6 +1,6 @@
 [package]
 name = "voxudio"
-version = "0.5.7"
+version = "0.5.8"
 edition = "2024"
 license = "Apache-2.0"
 description = "A real-time audio processing library with ONNX runtime support"
@@ -9,7 +9,7 @@ repository = "https://github.com/mzdk100/voxudio"
 keywords = ["audio", "processing", "onnx", "real-time", "machine-learning"]
 
 [dependencies]
-ndarray = "0.17.1"
+ndarray = "0.17.2"
 rodio = { version = "0.21.1", default-features = false, features = ["mp3", "wav"] }
 tokio = {version = "1.49.0", features = ["fs", "sync", "time"]}
 
@@ -23,7 +23,7 @@ optional = true
 
 [build-dependencies]
 bindgen = "0.72.1"
-cc ="1.2.52"
+cc ="1.2.54"
 
 [dev-dependencies]
 anyhow = "1.0.100"
