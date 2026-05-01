@@ -1,5 +1,5 @@
 //noinspection SpellCheckingInspection
-pub(super) const TOKENS: [&str; 11666] = [
+pub(super) static TOKENS: [&str; 11666] = [
     "<blank>",
     "<s>",
     "</s>",

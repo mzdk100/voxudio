@@ -4,7 +4,7 @@ use {
         BufferSize, Device, HostId, Stream, StreamConfig, SupportedStreamConfig, default_host,
         traits::{DeviceTrait, HostTrait, StreamTrait},
     },
-    rodio::{buffer::SamplesBuffer, source::UniformSourceIterator},
+    rodio::{ChannelCount, SampleRate, buffer::SamplesBuffer, source::UniformSourceIterator},
     std::{
         fmt::{Debug, Error as FmtError, Formatter, Result as FmtResult},
         io::{Error as IoError, ErrorKind},
@@ -73,8 +73,8 @@ impl AudioCollector {
                         }
                         Ok(p) => p,
                     };
-                    let mut iter = iter.enumerate();
-                    while let Some((i, permit)) = iter.next() {
+                    let iter = iter.enumerate();
+                    for (i, permit) in iter {
                         permit.send(buffer[i]);
                     }
                 },
@@ -375,11 +375,18 @@ impl AudioCollector {
 
         let res = if self.get_stream_channels() != channels || self.get_stream_sample_rate() != SR {
             let buffer = SamplesBuffer::new(
-                self.get_stream_channels() as _,
-                self.get_stream_sample_rate() as _,
+                ChannelCount::new(self.get_stream_channels() as _)
+                    .ok_or(IoError::other("Invalid channel count."))?,
+                SampleRate::new(self.get_stream_sample_rate() as _)
+                    .ok_or(IoError::other("Invalid sample rate."))?,
                 &buffer[..read],
             );
-            UniformSourceIterator::new(buffer, channels as _, SR as _).collect()
+            UniformSourceIterator::new(
+                buffer,
+                ChannelCount::new(channels as _).ok_or(IoError::other("Invalid channel count."))?,
+                SampleRate::new(SR as _).ok_or(IoError::other("Invalid sample rate."))?,
+            )
+            .collect()
         } else {
             buffer
         };

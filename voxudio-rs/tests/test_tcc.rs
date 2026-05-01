@@ -144,7 +144,10 @@ async fn test_tcc_empty_input() -> anyhow::Result<()> {
         .await;
 
     // 空输入应该返回错误
-    assert!(result.is_err(), "Processing empty input should return error");
+    assert!(
+        result.is_err(),
+        "Processing empty input should return error"
+    );
 
     Ok(())
 }
@@ -194,7 +197,10 @@ async fn test_tcc_feature_influence() -> anyhow::Result<()> {
     }
 
     // 不同的特征向量应该产生不同的转换结果
-    assert!(diff_sum > 0.0, "Different feature vectors should produce different conversion results");
+    assert!(
+        diff_sum > 0.0,
+        "Different feature vectors should produce different conversion results"
+    );
 
     Ok(())
 }

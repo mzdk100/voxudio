@@ -37,7 +37,10 @@ async fn test_audio_collector_creation() -> anyhow::Result<()> {
         return Ok(());
     };
     println!("Successfully created AudioCollector: {:?}", collector);
-    assert!(collector.get_name().is_ok(), "Should be able to get device name");
+    assert!(
+        collector.get_name().is_ok(),
+        "Should be able to get device name"
+    );
 
     Ok(())
 }

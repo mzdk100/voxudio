@@ -50,7 +50,7 @@ impl SpeakerEmbeddingExtractor {
     /// use voxudio::SpeakerEmbeddingExtractor;
     /// fn main() -> anyhow::Result<()> {
     /// let extractor = SpeakerEmbeddingExtractor::new("../checkpoint/speaker_embedding_extractor.onnx")?;
-    /// 
+    ///
     /// Ok(())
     /// }
     /// ```

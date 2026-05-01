@@ -4,9 +4,10 @@ use {
         BufferSize, Device, HostId, Stream, StreamConfig, SupportedStreamConfig, default_host,
         traits::{DeviceTrait, HostTrait, StreamTrait},
     },
-    rodio::{buffer::SamplesBuffer, source::UniformSourceIterator},
+    rodio::{ChannelCount, SampleRate, buffer::SamplesBuffer, source::UniformSourceIterator},
     std::{
         fmt::{Debug, Error as FmtError, Formatter, Result as FmtResult},
+        io::Error as IoError,
         mem::replace,
     },
     tokio::sync::mpsc::{Sender, channel},
@@ -352,9 +353,16 @@ impl AudioPlayer {
     ) -> Result<(), OperationError> {
         if self.get_stream_channels() != channels || self.get_stream_sample_rate() != SR {
             let iter = UniformSourceIterator::new(
-                SamplesBuffer::new(channels as _, SR as _, samples),
-                self.stream_config.channels,
-                self.stream_config.sample_rate,
+                SamplesBuffer::new(
+                    ChannelCount::new(channels as _)
+                        .ok_or(IoError::other("invalid channel count"))?,
+                    SampleRate::new(SR as _).ok_or(IoError::other("invalid sample rate"))?,
+                    samples,
+                ),
+                ChannelCount::new(self.stream_config.channels)
+                    .ok_or(IoError::other("invalid channel count"))?,
+                SampleRate::new(self.stream_config.sample_rate)
+                    .ok_or(IoError::other("invalid sample rate"))?,
             );
             for i in iter {
                 self.sender.send(i).await?;

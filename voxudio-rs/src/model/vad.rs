@@ -61,6 +61,7 @@ impl Default for VoiceActivityDetectorConfig {
 ///
 /// * `config`: 语音活动检测器的配置参数
 ///
+#[derive(Default)]
 pub struct VoiceActivityDetectorBuilder {
     config: VoiceActivityDetectorConfig,
 }
@@ -161,14 +162,6 @@ impl VoiceActivityDetectorBuilder {
     }
 }
 
-impl Default for VoiceActivityDetectorBuilder {
-    fn default() -> Self {
-        Self {
-            config: Default::default(),
-        }
-    }
-}
-
 /// 语音活动检测器
 ///
 /// 该结构体实现了基于ONNX模型的语音活动检测功能，能够识别音频中的语音片段。
@@ -199,7 +192,7 @@ impl Default for VoiceActivityDetectorBuilder {
 /// let mut vad = VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
 /// let (audio_data, channels) = load_audio::<16000, _>("../asset/hello_in_cn.mp3", true).await?;
 /// let segments = vad.get_speech_segments::<16000>(&audio_data).await?;
-/// 
+///
 /// Ok(())
 /// }
 /// ```
@@ -231,7 +224,7 @@ impl VoiceActivityDetector {
     /// ```
     /// fn main() -> anyhow::Result<()> {
     /// let vad = voxudio::VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
-    /// 
+    ///
     /// Ok(())
     /// }
     /// ```
@@ -263,7 +256,7 @@ impl VoiceActivityDetector {
         &self,
         x: &[f32],
     ) -> Result<(Array2<f32>, usize), OperationError> {
-        let (x, sr) = if SR != 16000 && (SR % 16000 == 0) {
+        let (x, sr) = if SR != 16000 && SR.is_multiple_of(16000) {
             let step = SR / 16000;
             let x = x.iter().step_by(step).collect::<Vec<_>>();
             (Array2::from_shape_fn((1, x.len()), |(_, i)| *x[i]), 16000)
@@ -511,10 +504,10 @@ impl VoiceActivityDetector {
             }
         }
 
-        if let Some((start, _)) = current_speech {
-            if (audio_length - start) as u64 > min_speech_samples {
-                speeches.push((start, audio_length));
-            }
+        if let Some((start, _)) = current_speech
+            && (audio_length - start) as u64 > min_speech_samples
+        {
+            speeches.push((start, audio_length));
         }
 
         // 应用边界填充
@@ -576,7 +569,7 @@ impl VoiceActivityDetector {
         audio: &[f32],
         channels: usize,
     ) -> Result<Vec<f32>, OperationError> {
-        let audio_16k = resample::<SR, 16000>(audio, channels, 1);
+        let audio_16k = resample::<SR, 16000>(audio, channels, 1)?;
         let segments = self.get_speech_segments::<16000>(&audio_16k).await?;
 
         let len = audio.len();

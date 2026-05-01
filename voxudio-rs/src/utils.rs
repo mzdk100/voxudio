@@ -6,6 +6,7 @@
 //! - `load_audio`: 从文件加载音频数据并转换为指定采样率和声道数
 //! - `resample`: 对音频数据进行重采样处理
 //! - `spatial_audio`: 生成空间音频
+//! - `speed`: 对音频数据进行变速处理（变速变调）
 //!
 //! # 错误处理
 //! 使用`OperationError`作为统一的错误类型
@@ -25,11 +26,14 @@
 use {
     crate::OperationError,
     rodio::{
-        Decoder, Source,
+        ChannelCount, Decoder, SampleRate, Source,
         buffer::SamplesBuffer,
         source::{Spatial, UniformSourceIterator},
     },
-    std::{io::Cursor, path::Path},
+    std::{
+        io::{Cursor, Error as IoError},
+        path::Path,
+    },
     tokio::fs::read,
 };
 
@@ -91,8 +95,13 @@ where
 {
     let file = Cursor::new(audio_data);
     let decoder = Decoder::new(file)?;
-    let channels = if mono { 1 } else { decoder.channels() } as usize;
-    let samples = UniformSourceIterator::new(decoder, channels as _, SR as _).collect::<Vec<f32>>();
+    let channels = if mono { 1 } else { decoder.channels().into() } as usize;
+    let samples = UniformSourceIterator::new(
+        decoder,
+        ChannelCount::new(channels as _).ok_or(IoError::other("Invalid channel count."))?,
+        SampleRate::new(SR as _).ok_or(IoError::other("Invalid sample rate."))?,
+    )
+    .collect::<Vec<f32>>();
 
     if samples.is_empty() {
         return Err(OperationError::InputInvalid("Audio is empty.".to_owned()));
@@ -111,29 +120,37 @@ where
 /// - `tgt_channels`: 目标声道数量
 ///
 /// # 返回
-/// `Vec<f32>`: 重采样后的样本数组
+/// `Result<Vec<f32>, OperationError>`: 重采样后的样本数组
 ///
 /// # 示例
 /// ```
 /// use voxudio::resample;
-/// let samples = vec![0.1, 0.2, 0.3, 0.4];
-/// let resampled = resample::<44100, 48000>(&samples, 1, 2);
+/// fn main() -> anyhow::Result<()> {
+///     let samples = vec![0.1, 0.2, 0.3, 0.4];
+///     let resampled = resample::<44100, 48000>(&samples, 1, 2)?;
+///
+///     Ok(())
+/// }
 /// ```
 pub fn resample<const SSR: usize, const TSR: usize>(
     samples: &[f32],
     src_channels: usize,
     tgt_channels: usize,
-) -> Vec<f32> {
+) -> Result<Vec<f32>, OperationError> {
     if samples.is_empty() || src_channels == 0 || tgt_channels == 0 {
-        return Vec::new();
+        return Ok(Default::default());
     }
 
-    UniformSourceIterator::new(
-        SamplesBuffer::new(src_channels as _, SSR as _, samples),
-        tgt_channels as _,
-        TSR as _,
+    Ok(UniformSourceIterator::new(
+        SamplesBuffer::new(
+            ChannelCount::new(src_channels as _).ok_or(IoError::other("Invalid channel count."))?,
+            SampleRate::new(SSR as _).ok_or(IoError::other("Invalid sample rate."))?,
+            samples,
+        ),
+        ChannelCount::new(tgt_channels as _).ok_or(IoError::other("Invalid channel count."))?,
+        SampleRate::new(TSR as _).ok_or(IoError::other("Invalid sample rate."))?,
     )
-    .collect()
+    .collect())
 }
 
 /// 对音频数据进行空间化处理（3D音效）
@@ -147,19 +164,23 @@ pub fn resample<const SSR: usize, const TSR: usize>(
 /// - `right_ear`: 右耳位置坐标[x, y, z]
 ///
 /// # 返回
-/// `Vec<f32>`: 空间化处理后的样本数组
+/// `Result<Vec<f32>, OperationError>`: 处理后的样本数组
 ///
 /// # 示例
 /// ```
 /// use voxudio::spatial_audio;
-/// let samples = vec![0.1, 0.2, 0.3, 0.4];
-/// let processed = spatial_audio::<44100>(
-///     &samples,
-///     2,
-///     [0.0, 0.0, 0.0],
-///     [-0.1, 0.0, 0.0],
-///     [0.1, 0.0, 0.0]
-/// );
+/// fn main() -> anyhow::Result<()> {
+///     let samples = vec![0.1, 0.2, 0.3, 0.4];
+///     let processed = spatial_audio::<44100>(
+///         &samples,
+///         2,
+///         [0.0, 0.0, 0.0],
+///         [-0.1, 0.0, 0.0],
+///         [0.1, 0.0, 0.0]
+///     )?;
+///
+///     Ok(())
+/// }
 /// ```
 pub fn spatial_audio<const SR: usize>(
     audio: &[f32],
@@ -167,14 +188,18 @@ pub fn spatial_audio<const SR: usize>(
     emitter_position: [f32; 3],
     left_ear: [f32; 3],
     right_ear: [f32; 3],
-) -> Vec<f32> {
-    Spatial::new(
-        SamplesBuffer::new(channels as _, SR as _, audio),
+) -> Result<Vec<f32>, OperationError> {
+    Ok(Spatial::new(
+        SamplesBuffer::new(
+            ChannelCount::new(channels as _).ok_or(IoError::other("Invalid channel count."))?,
+            SampleRate::new(SR as _).ok_or(IoError::other("Invalid sample rate."))?,
+            audio,
+        ),
         emitter_position,
         left_ear,
         right_ear,
     )
-    .collect()
+    .collect())
 }
 
 /// 对音频数据添加房间混响效果
@@ -209,7 +234,7 @@ pub fn reverb<const SR: usize>(
 
     let mut output = vec![0.0; audio.len()];
     let mut delay_lines = vec![vec![0.0; (SR as f32 * 0.1) as usize]; 8]; // 8个延迟线
-    let mut delay_pos = vec![0; 8];
+    let mut delay_pos = [0; 8];
     let delay_lengths = [
         (SR as f32 * 0.0297) as usize,
         (SR as f32 * 0.0371) as usize,
@@ -238,4 +263,56 @@ pub fn reverb<const SR: usize>(
     }
 
     output
+}
+
+/// 对音频数据进行变速处理（变速变调）
+///
+/// 通过调整采样率实现变速效果，速度改变的同时音高也会相应变化。
+/// factor > 1.0 加速（音高升高），factor < 1.0 减速（音高降低）。
+///
+/// # 参数
+/// - `SR`: 采样率
+/// - `audio`: 样本数组，双声道样本交错排列
+/// - `channels`: 声道数量
+/// - `factor`: 变速因子（必须大于0，1.0为原始速度）
+///
+/// # 返回
+/// `Result<Vec<f32>, OperationError>`: 变速后的样本数组
+///
+/// # 示例
+/// ```
+/// use voxudio::speed;
+/// fn main() -> anyhow::Result<()> {
+///     let samples = vec![0.1, 0.2, 0.3, 0.4];
+///     let sped_up = speed::<44100>(&samples, 2, 1.5)?; // 1.5倍速
+///     let slowed_down = speed::<44100>(&samples, 2, 0.75)?; // 0.75倍速
+///
+///     Ok(())
+/// }
+/// ```
+pub fn speed<const SR: usize>(
+    audio: &[f32],
+    channels: usize,
+    factor: f32,
+) -> Result<Vec<f32>, OperationError> {
+    if audio.is_empty() || channels == 0 {
+        return Ok(Default::default());
+    }
+    if factor <= 0.0 {
+        return Err(OperationError::InputInvalid(
+            "Speed factor must be greater than 0.".to_owned(),
+        ));
+    }
+    if (factor - 1.0).abs() < f32::EPSILON {
+        return Ok(audio.to_vec());
+    }
+
+    let src_channels =
+        ChannelCount::new(channels as _).ok_or(IoError::other("Invalid channel count."))?;
+    let src_sample_rate = SampleRate::new(SR as _).ok_or(IoError::other("Invalid sample rate."))?;
+
+    let source = SamplesBuffer::new(src_channels, src_sample_rate, audio).speed(factor);
+
+    // 变速后采样率改变，重采样回原始采样率以保持采样率一致
+    Ok(UniformSourceIterator::new(source, src_channels, src_sample_rate).collect())
 }

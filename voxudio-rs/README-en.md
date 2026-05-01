@@ -26,6 +26,10 @@ Voxudio is a high-performance audio processing library written in Rust, focusing
     - Builder pattern with `with_*` methods for flexible parameter configuration (e.g., number of mel bins, window type, etc.)
 - 🗣️ **Automatic Speech Recognition (ASR)**
     - Provides AutomaticSpeechRecognizer API for direct feature-to-text recognition
+- ⏩ **Audio Speed Change without Pitch Shift (Sonic)**
+    - High-quality time-stretch processing based on the [Sonic](https://github.com/waywardgeek/sonic) library
+    - Supports speed change (speed), pitch shift (pitch), rate change (rate), and volume adjustment (volume)
+    - Supports f32 and i16 sample formats, with both streaming and one-shot processing
 - 📱 **Cross-platform Support**
     - Supports Windows, Linux, macOS
     - Android platform support
@@ -55,7 +59,8 @@ cargo add voxudio
 5. [OPUS Codec](examples/oc.rs)
 6. [Online Feature Extraction](examples/offe.rs)
 7. [Automatic Speech Recognition](examples/asr.rs)
-8. [Android Usage Example](examples/android)
+8. [Audio Speed Change without Pitch Shift](examples/ss.rs)
+9. [Android Usage Example](examples/android)
    To run Android example:
     1. Ensure Android SDK and NDK are installed
     2. Navigate to examples/android directory

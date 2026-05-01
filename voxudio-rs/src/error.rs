@@ -42,7 +42,7 @@ pub enum OperationError {
     Opus(String),
     /// ONNX运行时错误
     #[cfg(feature = "model")]
-    Ort(OrtError),
+    Ort(String),
     #[cfg(feature = "device")]
     PauseStream(PauseStreamError),
     #[cfg(feature = "device")]
@@ -50,6 +50,9 @@ pub enum OperationError {
     Send(SendError<f32>),
     /// 数组形状错误
     Shape(ShapeError),
+    /// Sonic 变速处理错误
+    #[cfg(feature = "sonic")]
+    Sonic(String),
     /// 系统时间错误
     SystemTime(SystemTimeError),
 }
@@ -94,7 +97,7 @@ impl Clone for OperationError {
             Self::NoDevice(s) => Self::NoDevice(s.to_owned()),
             Self::Opus(s) => Self::Opus(s.to_owned()),
             #[cfg(feature = "model")]
-            Self::Ort(e) => Self::Ort(OrtError::new(e.message())),
+            Self::Ort(e) => Self::Ort(e.to_owned()),
             #[cfg(feature = "device")]
             Self::PauseStream(e) => Self::PauseStream(match e {
                 PauseStreamError::DeviceNotAvailable => PauseStreamError::DeviceNotAvailable,
@@ -111,12 +114,15 @@ impl Clone for OperationError {
             }),
             Self::Send(e) => Self::Send(*e),
             Self::Shape(e) => Self::Shape(e.clone()),
+            #[cfg(feature = "sonic")]
+            Self::Sonic(s) => Self::Sonic(s.to_owned()),
             Self::SystemTime(e) => Self::SystemTime(e.clone()),
         }
     }
 }
 
 impl Display for OperationError {
+    //noinspection SpellCheckingInspection
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "OperationError: ")?;
         match self {
@@ -135,13 +141,15 @@ impl Display for OperationError {
             Self::NoDevice(s) => write!(f, "NoDeviceError: {}", s,),
             Self::Opus(s) => write!(f, "OpusError: {}", s,),
             #[cfg(feature = "model")]
-            Self::Ort(e) => Display::fmt(e, f),
+            Self::Ort(e) => write!(f, "OrtError: {}", e),
             #[cfg(feature = "device")]
             Self::PauseStream(e) => Display::fmt(e, f),
             #[cfg(feature = "device")]
             Self::PlayStream(e) => Display::fmt(e, f),
             Self::Send(e) => Display::fmt(e, f),
             Self::Shape(e) => Display::fmt(e, f),
+            #[cfg(feature = "sonic")]
+            Self::Sonic(s) => write!(f, "SonicError: {}", s),
             Self::SystemTime(e) => Display::fmt(e, f),
         }
     }
@@ -156,9 +164,9 @@ impl From<ShapeError> for OperationError {
 }
 
 #[cfg(feature = "model")]
-impl From<OrtError> for OperationError {
-    fn from(value: OrtError) -> Self {
-        Self::Ort(value)
+impl<T> From<OrtError<T>> for OperationError {
+    fn from(value: OrtError<T>) -> Self {
+        Self::Ort(value.to_string())
     }
 }
 

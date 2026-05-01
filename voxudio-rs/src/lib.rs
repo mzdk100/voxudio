@@ -94,6 +94,8 @@ mod knf;
 mod model;
 #[cfg(feature = "opus")]
 mod opus;
+#[cfg(feature = "sonic")]
+mod sonic;
 mod utils;
 
 #[cfg(feature = "device")]
@@ -104,4 +106,6 @@ pub use knf::*;
 pub use model::*;
 #[cfg(feature = "opus")]
 pub use opus::*;
+#[cfg(feature = "sonic")]
+pub use sonic::*;
 pub use {error::*, utils::*};

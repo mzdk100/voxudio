@@ -25,7 +25,7 @@ pub enum OpusApplication {
 
 impl OpusApplication {
     // 转换为Opus C API使用的整数值
-    fn to_opus_int(&self) -> i32 {
+    fn to_opus_int(self) -> i32 {
         match self {
             Self::Audio => raw::OPUS_APPLICATION_AUDIO as i32,
             Self::Voip => raw::OPUS_APPLICATION_VOIP as i32,
@@ -69,14 +69,14 @@ pub enum OpusBandwidth {
 
 impl OpusBandwidth {
     // 转换为Opus C API使用的整数值
-    fn to_opus_int(&self) -> i32 {
+    fn to_opus_int(self) -> i32 {
         match self {
             Self::Narrowband => raw::OPUS_BANDWIDTH_NARROWBAND as i32,
             Self::Mediumband => raw::OPUS_BANDWIDTH_MEDIUMBAND as i32,
             Self::Wideband => raw::OPUS_BANDWIDTH_WIDEBAND as i32,
             Self::Superwideband => raw::OPUS_BANDWIDTH_SUPERWIDEBAND as i32,
             Self::Fullband => raw::OPUS_BANDWIDTH_FULLBAND as i32,
-            Self::Custom(value) => *value,
+            Self::Custom(value) => value,
         }
     }
 }
@@ -313,7 +313,7 @@ impl OpusEncoder {
         let samples_per_channel = pcm.len() / self.channels;
 
         // 检查输入数据是否足够
-        if samples_per_channel < frame_size as usize {
+        if samples_per_channel < frame_size {
             return Err(OperationError::Opus(format!(
                 "Input data too short for encoding: need {} samples per channel, got {}",
                 frame_size, samples_per_channel

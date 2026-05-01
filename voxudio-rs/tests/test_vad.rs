@@ -3,7 +3,10 @@ use {std::f32::consts::PI, voxudio::*};
 #[tokio::test]
 async fn test_vad_creation() {
     let vad = VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx");
-    assert!(vad.is_ok(), "Should be able to create VoiceActivityDetector");
+    assert!(
+        vad.is_ok(),
+        "Should be able to create VoiceActivityDetector"
+    );
 }
 
 #[tokio::test]
@@ -26,13 +29,19 @@ async fn test_vad_detect() -> anyhow::Result<()> {
     let prob = vad.detect::<16000>(&audio_with_speech).await?;
     println!("Speech probability: {}", prob);
     // Speech segment should have higher probability
-    assert!(prob > 0.3, "Speech segment should have higher detection probability");
+    assert!(
+        prob > 0.3,
+        "Speech segment should have higher detection probability"
+    );
 
     // Test silence detection
     let prob = vad.detect::<16000>(&audio_silence).await?;
     println!("Silence probability: {}", prob);
     // Silent segment should have lower probability
-    assert!(prob < 0.3, "Silent segment should have lower detection probability");
+    assert!(
+        prob < 0.3,
+        "Silent segment should have lower detection probability"
+    );
 
     Ok(())
 }
@@ -64,7 +73,10 @@ async fn test_vad_get_speech_segments() -> anyhow::Result<()> {
     let segments = vad.get_speech_segments::<16000>(&audio).await?;
 
     println!("Detected speech segments: {:?}", segments);
-    assert!(!segments.is_empty(), "Should detect at least one speech segment");
+    assert!(
+        !segments.is_empty(),
+        "Should detect at least one speech segment"
+    );
 
     // Print raw results before iteration
     println!("Raw detection results: {:?}", segments);
@@ -142,10 +154,17 @@ async fn test_vad_retain_speech_only() -> anyhow::Result<()> {
 
     // Verify results
     assert!(!speech_only.is_empty(), "Result should not be empty");
-    assert_eq!(speech_only.len() % channels, 0, "Result should maintain correct number of channels");
+    assert_eq!(
+        speech_only.len() % channels,
+        0,
+        "Result should maintain correct number of channels"
+    );
 
     // Result length should be shorter than original (since silence was removed)
-    assert!(speech_only.len() < audio.len(), "Result should be shorter than original audio");
+    assert!(
+        speech_only.len() < audio.len(),
+        "Result should be shorter than original audio"
+    );
 
     // Verify it contains non-zero samples (speech)
     let has_non_zero = speech_only.iter().any(|&x| x != 0.0);
@@ -168,7 +187,10 @@ async fn test_vad_with_different_sample_rates() -> anyhow::Result<()> {
 
     // Test 8kHz sample rate
     let result_8k = vad.detect::<8000>(&audio_8k).await;
-    assert!(result_8k.is_ok(), "8kHz sample rate detection should succeed");
+    assert!(
+        result_8k.is_ok(),
+        "8kHz sample rate detection should succeed"
+    );
 
     // Create 16kHz test audio
     let mut audio_16k = Vec::with_capacity(512);
@@ -180,7 +202,10 @@ async fn test_vad_with_different_sample_rates() -> anyhow::Result<()> {
 
     // Test 16kHz sample rate
     let result_16k = vad.detect::<16000>(&audio_16k).await;
-    assert!(result_16k.is_ok(), "16kHz sample rate detection should succeed");
+    assert!(
+        result_16k.is_ok(),
+        "16kHz sample rate detection should succeed"
+    );
 
     // Test 32kHz sample rate (should automatically downsample to 16kHz)
     let mut audio_32k = Vec::with_capacity(1024);
@@ -191,7 +216,10 @@ async fn test_vad_with_different_sample_rates() -> anyhow::Result<()> {
     }
 
     let result_32k = vad.detect::<32000>(&audio_32k).await;
-    assert!(result_32k.is_ok(), "32kHz sample rate detection should succeed");
+    assert!(
+        result_32k.is_ok(),
+        "32kHz sample rate detection should succeed"
+    );
 
     Ok(())
 }

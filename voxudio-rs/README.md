@@ -26,6 +26,10 @@ Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处
     - 支持通过 builder 的 `with_*` 方法灵活配置参数（如梅尔滤波器组数、窗函数类型等）
 - 🗣️ **自动语音识别（ASR）**
     - 提供 AutomaticSpeechRecognizer API，可直接输入特征并获得识别文本
+- ⏩ **音频变速不变调（Sonic）**
+    - 基于 [Sonic](https://github.com/waywardgeek/sonic) 库的高质量音频变速不变调处理
+    - 支持变速不变调（speed）、变调（pitch）、变速变调（rate）、音量调节（volume）
+    - 支持 f32 和 i16 采样格式，流式和一次性处理
 - 📱 **跨平台支持**
     - 支持 Windows、Linux、macOS
     - Android 平台支持
@@ -55,7 +59,8 @@ cargo add voxudio
 5. [OPUS编解码](examples/oc.rs)
 6. [在线特征提取](examples/offe.rs)
 7. [自动语音识别](examples/asr.rs)
-8. [Android 使用示例](examples/android)
+8. [音频变速不变调](examples/ss.rs)
+9. [Android 使用示例](examples/android)
    运行 Android 示例：
     1. 确保已安装 Android SDK 和 NDK
     2. 进入 examples/android 目录

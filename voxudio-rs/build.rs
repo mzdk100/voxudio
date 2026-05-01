@@ -135,6 +135,8 @@ const SOURCE_FILES_OPUS: [&str; 128] = [
     "float/noise_shape_analysis_FLP.c",
     "float/warped_autocorrelation_FLP.c",
 ];
+const SOURCE_FILES_SONIC: [&str; 1] = ["sonic.c"];
+
 const SOURCE_FILES_KNF: [&str; 12] = [
     "feature-fbank.cc",
     "feature-window.cc",
@@ -230,6 +232,36 @@ fn compile_knf() {
     }
 }
 
+fn compile_sonic() {
+    let out_dir = var("OUT_DIR").unwrap();
+
+    let src_path = Path::new("src/sonic");
+
+    let mut build = cc::Build::new();
+    build.include(src_path);
+    build.warnings(false);
+
+    for file in &SOURCE_FILES_SONIC {
+        build.file(src_path.join(file));
+    }
+
+    // sonic.c 使用 math.h 中的 sin 等，需要链接数学库
+    build.compile("sonic");
+
+    if bindgen::builder()
+        .header("src/sonic/sonic.h")
+        .allowlist_item("sonic.*")
+        .generate_comments(true)
+        .wrap_unsafe_ops(true)
+        .generate()
+        .unwrap()
+        .write_to_file(Path::new(&out_dir).join("ss"))
+        .is_ok()
+    {
+        println!("cargo:rerun-if-changed=src/sonic");
+    }
+}
+
 fn main() {
     let features = var("CARGO_CFG_FEATURE").unwrap();
     if features.contains("opus") {
@@ -237,5 +269,8 @@ fn main() {
     }
     if features.contains("knf") {
         compile_knf();
+    }
+    if features.contains("sonic") {
+        compile_sonic();
     }
 }

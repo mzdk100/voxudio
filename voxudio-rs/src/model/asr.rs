@@ -110,7 +110,7 @@ impl AutomaticSpeechRecognizer {
         // for what LFR means
         //
         // "Lower Frame Rate Neural Network Acoustic Models"
-        let mut features = Self::apply_lfr(&features, lfr_window_size, lfr_window_shift);
+        let mut features = Self::apply_lfr(features, lfr_window_size, lfr_window_shift);
         Self::apply_cmvn(&mut features, &neg_mean, &inv_stddev);
         let num_frames = features.len() / feat_dim;
         let x = Array3::from_shape_vec((1, num_frames, feat_dim), features)?;

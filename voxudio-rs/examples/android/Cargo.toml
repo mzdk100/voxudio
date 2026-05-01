@@ -35,7 +35,7 @@ crate-type = ["cdylib"]
 test = false
 
 [dependencies]
-tokio = {version = "1.45.1", features = ["rt-multi-thread"] }
+tokio = {version = "1.52.1", features = ["rt-multi-thread"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 ndk-glue = "0.7.0"
