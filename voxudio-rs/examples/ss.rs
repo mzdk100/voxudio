@@ -9,7 +9,7 @@ use voxudio::*;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let mut stream = SonicStream::new(32000, 1)?;
-    let (input, _) = load_audio::<32000, _>("../asset/test3.wav", true).await?;
+    let (input, _) = load_audio::<32000, f32, _>("../asset/test3.wav", true).await?;
     let duration_ms = input.len() * 1000 / (stream.get_sample_rate() * stream.get_channels());
     println!(
         "输入样本数: {} ({}ms @ {}Hz)",
@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
             output.len(),
             output_ms
         );
-        player.write::<32000>(&output, 1).await?;
+        player.write::<32000, f32>(&output, 1).await?;
     }
 
     // === 使用流式 API ===

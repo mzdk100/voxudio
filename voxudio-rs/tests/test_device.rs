@@ -26,7 +26,7 @@ async fn test_audio_player_play() -> anyhow::Result<()> {
     // Play audio
     println!("Attempting to play audio...");
     player.play()?;
-    player.write::<48000>(&test_audio, 1).await?;
+    player.write::<48000, f32>(&test_audio, 1).await?;
 
     Ok(())
 }
@@ -80,7 +80,7 @@ async fn test_audio_collector_read() -> anyhow::Result<()> {
 
     // Read data - add more error handling and logging
     println!("Attempting to read audio data...");
-    let data = collector.read::<48000>(2).await?;
+    let data = collector.read::<48000, f32>(2).await?;
 
     // Ensure to stop collection immediately after reading, regardless of success
     println!("Attempting to stop audio collection...");

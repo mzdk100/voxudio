@@ -1,5 +1,5 @@
 use {
-    crate::OperationError,
+    crate::{GenericSample, OperationError, samples_to_f32},
     cpal::{
         BufferSize, Device, HostId, Stream, StreamConfig, SupportedStreamConfig, default_host,
         traits::{DeviceTrait, HostTrait, StreamTrait},
@@ -31,7 +31,7 @@ use {
 /// async fn main() -> anyhow::Result<()> {
 /// let mut player = AudioPlayer::new()?;
 /// player.play()?;
-/// player.write::<44100>(&[0f32; 88200], 2).await?;
+/// player.write::<44100, f32>(&[0f32; 88200], 2).await?;
 ///
 /// Ok(())
 /// }
@@ -323,7 +323,7 @@ impl AudioPlayer {
     /// 当流通道已满，此方法会异步等待，直到播放器消耗一部分数据
     ///
     /// # 参数
-    /// - `samples`: 音频样本数据切片
+    /// - `samples`: 音频样本数据切片，类型必须实现 [`GenericSample`] 特征
     /// - `channels`: 音频通道数
     ///
     /// # 返回值
@@ -341,23 +341,27 @@ impl AudioPlayer {
     /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
     ///     let mut player = AudioPlayer::new()?;
-    /// player.play()?;
-    ///     player.write::<44100>(&[0f32; 88200], 2).await?;
+    ///     player.play()?;
+    ///     player.write::<44100, f32>(&[0f32; 88200], 2).await?;
     ///     Ok(())
     /// }
     /// ```
-    pub async fn write<const SR: usize>(
+    pub async fn write<const SR: usize, S>(
         &mut self,
-        samples: &[f32],
+        samples: &[S],
         channels: usize,
-    ) -> Result<(), OperationError> {
+    ) -> Result<(), OperationError>
+    where
+        S: GenericSample,
+    {
         if self.get_stream_channels() != channels || self.get_stream_sample_rate() != SR {
+            let f32_samples = samples_to_f32(samples);
             let iter = UniformSourceIterator::new(
                 SamplesBuffer::new(
                     ChannelCount::new(channels as _)
                         .ok_or(IoError::other("invalid channel count"))?,
                     SampleRate::new(SR as _).ok_or(IoError::other("invalid sample rate"))?,
-                    samples,
+                    f32_samples,
                 ),
                 ChannelCount::new(self.stream_config.channels)
                     .ok_or(IoError::other("invalid channel count"))?,
@@ -371,8 +375,8 @@ impl AudioPlayer {
             return Ok(());
         }
 
-        for i in samples {
-            self.sender.send(*i).await?;
+        for s in samples {
+            self.sender.send(s.to_f32()).await?;
         }
 
         Ok(())

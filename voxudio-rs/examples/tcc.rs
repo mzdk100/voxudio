@@ -16,13 +16,15 @@ async fn main() -> anyhow::Result<()> {
     let mut see = SpeakerEmbeddingExtractor::new("../checkpoint/speaker_embedding_extractor.onnx")?;
     let mut tcc = ToneColorConverter::new("../checkpoint/tone_color_converter.onnx")?;
 
-    let (src_audio, src_channels) = load_audio::<22050, _>("../asset/test6.wav", false).await?;
+    let (src_audio, src_channels) =
+        load_audio::<22050, f32, _>("../asset/test6.wav", false).await?;
     let vad_audio = vad
         .retain_speech_only::<22050>(&src_audio, src_channels)
         .await?;
     let src_se = see.extract(&vad_audio, src_channels).await?;
 
-    let (tgt_audio, tgt_channels) = load_audio::<22050, _>("../asset/bajie.mp3", false).await?;
+    let (tgt_audio, tgt_channels) =
+        load_audio::<22050, f32, _>("../asset/bajie.mp3", false).await?;
     let vad_audio = vad
         .retain_speech_only::<22050>(&tgt_audio, tgt_channels)
         .await?;
@@ -33,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut ap = AudioPlayer::new()?;
     ap.play()?;
-    ap.write::<22050>(&out_audio, out_channels).await?;
+    ap.write::<22050, f32>(&out_audio, out_channels).await?;
 
     Ok(())
 }

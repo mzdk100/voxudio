@@ -9,7 +9,7 @@ use voxudio::*;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let (audio, _) = load_audio::<16000, _>(
+    let (audio, _) = load_audio::<16000, f32, _>(
         "F:/python/sherpa-onnx/sherpa-onnx-zipformer-ctc-small-zh-int8-2025-07-16/test_wavs/0.wav",
         true,
     )

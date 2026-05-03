@@ -18,7 +18,7 @@ use {
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
 /// let mut see = SpeakerEmbeddingExtractor::new("../checkpoint/speaker_embedding_extractor.onnx")?;
-/// let (audio_data, channels) = load_audio::<22050, _>("../asset/hello_in_cn.mp3", true).await?;
+/// let (audio_data, channels) = load_audio::<22050, f32, _>("../asset/hello_in_cn.mp3", true).await?;
 /// let embeddings = see.extract(&audio_data, channels).await?;
 /// Ok(())
 /// }

@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
     let mut vad = VoiceActivityDetector::builder()
         .with_min_silence_duration(300)
         .build("../checkpoint/voice_activity_detector.onnx")?;
-    let (audio, channels) = load_audio::<16000, _>("../asset/test4.wav", true).await?;
+    let (audio, channels) = load_audio::<16000, f32, _>("../asset/test4.wav", true).await?;
 
     let segments = vad.get_speech_segments::<16000>(&audio).await?;
     println!("Speech segments:");
@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut ap = AudioPlayer::new()?;
     ap.play()?;
-    ap.write::<16000>(&speech_only, channels).await?;
+    ap.write::<16000, f32>(&speech_only, channels).await?;
 
     Ok(())
 }

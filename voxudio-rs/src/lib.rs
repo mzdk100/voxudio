@@ -31,7 +31,7 @@
 //!     let mut see = SpeakerEmbeddingExtractor::new("checkpoint/speaker_embedding_extractor.onnx")?;
 //!
 //!     // Load audio file
-//!     let (audio, channels) = load_audio::<22050, _>("../asset/test.wav", false).await?;
+//!     let (audio, channels) = load_audio::<22050, f32, _>("../asset/test.wav", false).await?;
 //!
 //!     // Detect speech segments
 //!     let vad_audio = vad.retain_speech_only::<22050>(&audio, channels).await?;
@@ -56,7 +56,7 @@
 //!         .with_energy_floor(1.0)
 //!         .build()?;
 //!     // Load audio file
-//!     let (audio, channels) = load_audio::<16000, _>("../asset/test.wav", true).await?;
+//!     let (audio, channels) = load_audio::<16000, f32, _>("../asset/test.wav", true).await?;
 //!     // Extract FBank features
 //!     let features = extractor.extract::<16000>(&audio);
 //!     println!("FBank features: {:?}", features);

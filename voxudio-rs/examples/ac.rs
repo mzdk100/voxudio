@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     let mut ap = AudioPlayer::new()?;
     ap.play()?;
     loop {
-        let audio = ac.read::<16000>(1).await?;
-        ap.write::<16000>(&audio, 1).await?;
+        let audio = ac.read::<16000, f32>(1).await?;
+        ap.write::<16000, f32>(&audio, 1).await?;
     }
 }

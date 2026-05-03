@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
         .build()?;
     let mut asr = AutomaticSpeechRecognizer::new("../checkpoint/automatic_speech_recognizer.onnx")?;
 
-    let (audio, channels) = load_audio::<16000, _>(r"../asset/test.wav", true).await?;
+    let (audio, channels) = load_audio::<16000, f32, _>(r"../asset/test.wav", true).await?;
     let speech_only = vad.retain_speech_only::<16000>(&audio, channels).await?;
     let features = offe.extract::<16000>(&speech_only);
     let text = asr.recognize(&features).await?;

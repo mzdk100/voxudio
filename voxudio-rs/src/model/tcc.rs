@@ -81,7 +81,7 @@ impl ToneColorConverter {
     ) -> Result<(Vec<f32>, usize, Duration), OperationError> {
         let max_channels = tgt_se.len().max(src_se.len());
         let audio = if src_se.len() < max_channels {
-            resample::<22050, 22050>(src_audio, src_se.len(), max_channels)?
+            resample::<22050, 22050, f32>(src_audio, src_se.len(), max_channels)?
         } else {
             src_audio.to_vec()
         };

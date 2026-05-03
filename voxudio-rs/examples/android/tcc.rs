@@ -21,14 +21,14 @@ async fn run() -> Result<(), Box<dyn Error>> {
     let mut tcc = ToneColorConverter::new(assets_dir.join("tone_color_converter.onnx"))?;
 
     let (src_audio, src_channels) =
-        load_audio::<22050, _>(assets_dir.join("test6.wav"), false).await?;
+        load_audio::<22050, f32, _>(assets_dir.join("test6.wav"), false).await?;
     let vad_audio = vad
         .retain_speech_only::<22050>(&src_audio, src_channels)
         .await?;
     let src_se = see.extract(&vad_audio, src_channels).await?;
 
     let (tgt_audio, tgt_channels) =
-        load_audio::<22050, _>(assets_dir.join("bajie.mp3"), false).await?;
+        load_audio::<22050, f32, _>(assets_dir.join("bajie.mp3"), false).await?;
     let vad_audio = vad
         .retain_speech_only::<22050>(&tgt_audio, tgt_channels)
         .await?;
@@ -39,7 +39,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
 
     let mut ap = AudioPlayer::new()?;
     ap.play()?;
-    ap.write::<22050>(&out_audio, out_channels).await?;
+    ap.write::<22050, f32>(&out_audio, out_channels).await?;
 
     Ok(())
 }

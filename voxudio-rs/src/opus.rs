@@ -1,6 +1,6 @@
 mod raw;
 
-use {crate::error::OperationError, std::ptr::null};
+use {crate::GenericSample, crate::error::OperationError, std::ptr::null};
 
 /// 封装Opus应用类型为枚举
 ///
@@ -78,51 +78,6 @@ impl OpusBandwidth {
             Self::Fullband => raw::OPUS_BANDWIDTH_FULLBAND as i32,
             Self::Custom(value) => value,
         }
-    }
-}
-
-/// Opus音频样本类型特征
-///
-/// 定义了可用于Opus编解码的音频样本类型必须实现的方法。
-/// 这个特征允许编解码器与不同的音频样本格式（如i16和f32）一起工作。
-pub trait OpusSample {
-    /// 检查样本类型是否为f32
-    ///
-    /// 用于内部决定使用哪个Opus API函数进行编解码。
-    fn is_f32() -> bool {
-        false
-    }
-
-    /// 检查样本类型是否为i16
-    ///
-    /// 用于内部决定使用哪个Opus API函数进行编解码。
-    fn is_i16() -> bool {
-        false
-    }
-
-    /// 创建一个值为零的样本
-    ///
-    /// 用于初始化音频缓冲区。
-    fn zero() -> Self;
-}
-
-impl OpusSample for i16 {
-    fn is_i16() -> bool {
-        true
-    }
-
-    fn zero() -> Self {
-        0
-    }
-}
-
-impl OpusSample for f32 {
-    fn is_f32() -> bool {
-        true
-    }
-
-    fn zero() -> Self {
-        0f32
     }
 }
 
@@ -286,7 +241,7 @@ impl OpusEncoder {
     ///
     /// # 参数
     ///
-    /// * `pcm` - 输入PCM音频数据，类型必须实现[`OpusSample`]特征
+    /// * `pcm` - 输入PCM音频数据，类型必须实现[`GenericSample`]特征
     /// * `frame_size` - 每个通道的帧大小（样本数），通常为2.5, 5, 10, 20, 40或60毫秒对应的样本数
     /// * `max_data_bytes` - 输出缓冲区的最大大小（字节），建议使用[`OpusCodec::MAX_PACKET_SIZE`]
     ///
@@ -304,12 +259,15 @@ impl OpusEncoder {
     /// let frame_size = 960; // 48000 Hz * 20ms / 1000 = 960 samples
     /// let encoded = encoder.encode(&pcm_data, frame_size, OpusCodec::MAX_PACKET_SIZE).unwrap();
     /// ```
-    pub fn encode<S: OpusSample>(
+    pub fn encode<S>(
         &self,
         pcm: &[S],
         frame_size: usize,
         max_data_bytes: usize,
-    ) -> Result<Vec<u8>, OperationError> {
+    ) -> Result<Vec<u8>, OperationError>
+    where
+        S: GenericSample,
+    {
         let samples_per_channel = pcm.len() / self.channels;
 
         // 检查输入数据是否足够
@@ -439,11 +397,14 @@ impl OpusDecoder {
     /// // 处理丢包情况
     /// let concealed = decoder.decode::<i16>(None, frame_size).unwrap();
     /// ```
-    pub fn decode<S: Clone + OpusSample>(
+    pub fn decode<S>(
         &self,
         data: Option<&[u8]>,
         frame_size: usize,
-    ) -> Result<Vec<S>, OperationError> {
+    ) -> Result<Vec<S>, OperationError>
+    where
+        S: GenericSample,
+    {
         // 为输出分配足够的空间（frame_size * channels）
         let mut decoded = vec![S::zero(); frame_size * self.channels];
 

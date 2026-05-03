@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     let mut vad = VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
     let mut see = SpeakerEmbeddingExtractor::new("../checkpoint/speaker_embedding_extractor.onnx")?;
 
-    let (audio, channels) = load_audio::<22050, _>("../asset/houge.mp3", false).await?;
+    let (audio, channels) = load_audio::<22050, f32, _>("../asset/houge.mp3", false).await?;
     let vad_audio = vad.retain_speech_only::<22050>(&audio, channels).await?;
     let se = see.extract(&vad_audio, channels).await?;
     println!("{:?}", se);

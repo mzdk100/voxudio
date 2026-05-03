@@ -45,7 +45,7 @@ async fn test_complete_audio_pipeline() -> anyhow::Result<()> {
     // Step 1: Detect speech activity with VAD
     println!("Step 1: Running voice activity detection");
     let mut vad = VoiceActivityDetector::new("../checkpoint/voice_activity_detector.onnx")?;
-    let source_audio_16k = resample::<22050, 16000>(&source_audio, 1, 1)?;
+    let source_audio_16k = resample::<22050, 16000, f32>(&source_audio, 1, 1)?;
     let is_speech = vad.detect::<16000>(&source_audio_16k[..512]).await?;
     println!("VAD detection result: is_speech = {}", is_speech);
 
@@ -101,7 +101,7 @@ async fn test_realtime_audio_processing() -> anyhow::Result<()> {
     sleep(Duration::from_millis(500)).await;
 
     // Read audio data
-    let audio_data = collector.read::<44100>(2).await?;
+    let audio_data = collector.read::<44100, f32>(2).await?;
     println!("Read {} audio samples", audio_data.len());
 
     // Stop audio collector

@@ -1,5 +1,5 @@
 use {
-    crate::OperationError,
+    crate::{GenericSample, OperationError},
     cpal::{
         BufferSize, Device, HostId, Stream, StreamConfig, SupportedStreamConfig, default_host,
         traits::{DeviceTrait, HostTrait, StreamTrait},
@@ -35,7 +35,7 @@ use {
 /// return Ok(());
 /// };
 /// collector.collect()?;
-/// let data = collector.read::<44100>(2).await?;
+/// let data = collector.read::<44100, f32>(2).await?;
 /// collector.close();
 ///
 /// Ok(())
@@ -329,10 +329,11 @@ impl AudioCollector {
     /// 从音频流中读取数据
     ///
     /// # 参数
+    /// - `S`: 样本类型，需实现 [`GenericSample`] 特征
     /// - `channels`: 目标通道数(usize)
     ///
     /// # 返回值
-    /// 返回`Result<Vec<f32>, OperationError>`，成功时包含音频数据向量
+    /// 返回`Result<Vec<S>, OperationError>`，成功时包含音频数据向量
     ///
     /// # 错误
     /// 可能返回`OperationError::Io`，当读取数据失败时
@@ -345,15 +346,18 @@ impl AudioCollector {
     /// let Ok(mut collector) = AudioCollector::new() else {
     /// return Ok(());
     /// };
-    /// let data = collector.read::<44100>(2).await?;
+    /// let data = collector.read::<44100, f32>(2).await?;
     ///
     /// Ok(())
     /// }
     /// ```
-    pub async fn read<const SR: usize>(
+    pub async fn read<const SR: usize, S>(
         &mut self,
         channels: usize,
-    ) -> Result<Vec<f32>, OperationError> {
+    ) -> Result<Vec<S>, OperationError>
+    where
+        S: GenericSample,
+    {
         if self.receiver.is_empty() {
             sleep(Duration::from_millis(
                 (self.receiver.max_capacity() * 1000
@@ -381,14 +385,15 @@ impl AudioCollector {
                     .ok_or(IoError::other("Invalid sample rate."))?,
                 &buffer[..read],
             );
-            UniformSourceIterator::new(
+            let resampled: Vec<f32> = UniformSourceIterator::new(
                 buffer,
                 ChannelCount::new(channels as _).ok_or(IoError::other("Invalid channel count."))?,
                 SampleRate::new(SR as _).ok_or(IoError::other("Invalid sample rate."))?,
             )
-            .collect()
+            .collect();
+            resampled.iter().map(|&v| S::from_f32(v)).collect()
         } else {
-            buffer
+            buffer[..read].iter().map(|&v| S::from_f32(v)).collect()
         };
 
         Ok(res)

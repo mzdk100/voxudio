@@ -1,45 +1,6 @@
 mod raw;
 
-use crate::OperationError;
-
-/// Sonic 音频样本类型特征
-///
-/// 定义了可用于 Sonic 变速处理的音频样本类型必须实现的方法。
-/// 这个特征允许 SonicStream 与不同的音频样本格式（如 i16 和 f32）一起工作。
-pub trait SonicSample: Clone {
-    /// 检查样本类型是否为 f32
-    fn is_f32() -> bool {
-        false
-    }
-
-    /// 检查样本类型是否为 i16
-    fn is_i16() -> bool {
-        false
-    }
-
-    /// 创建一个值为零的样本
-    fn zero() -> Self;
-}
-
-impl SonicSample for f32 {
-    fn is_f32() -> bool {
-        true
-    }
-
-    fn zero() -> Self {
-        0.0
-    }
-}
-
-impl SonicSample for i16 {
-    fn is_i16() -> bool {
-        true
-    }
-
-    fn zero() -> Self {
-        0
-    }
-}
+use crate::{GenericSample, OperationError};
 
 /// Sonic 音频变速不变调处理器
 ///
@@ -118,7 +79,7 @@ impl SonicStream {
     /// 对于交错排列的多声道数据，直接传入整个数组，`num_samples` 自动按每声道计算。
     ///
     /// # 参数
-    /// - `samples`: 音频样本数组（交错排列），类型必须实现 [`SonicSample`] 特征
+    /// - `samples`: 音频样本数组（交错排列），类型必须实现 [`GenericSample`] 特征
     ///
     /// # 返回
     /// 成功返回 `Ok(())`，失败返回错误
@@ -138,7 +99,7 @@ impl SonicStream {
     /// ```
     pub fn write<S>(&mut self, samples: &[S]) -> Result<(), OperationError>
     where
-        S: SonicSample,
+        S: GenericSample,
     {
         let num_samples = samples.len() / self.channels;
         let ret = unsafe {
@@ -168,7 +129,7 @@ impl SonicStream {
         num_samples: usize,
     ) -> Result<(), OperationError>
     where
-        S: SonicSample,
+        S: GenericSample,
     {
         let ret = unsafe {
             if S::is_f32() {
@@ -208,7 +169,7 @@ impl SonicStream {
     /// ```
     pub fn read<S>(&mut self, max_samples: usize) -> Vec<S>
     where
-        S: SonicSample,
+        S: GenericSample,
     {
         let total_samples = max_samples * self.channels;
         let mut buf = vec![S::zero(); total_samples];
@@ -341,7 +302,7 @@ impl SonicStream {
     /// 便捷方法，使用流式 API 内部处理整段音频数据，适合不需要流式处理的场景。
     ///
     /// # 参数
-    /// - `samples`: 音频样本数组（交错排列），类型必须实现 [`SonicSample`] 特征
+    /// - `samples`: 音频样本数组（交错排列），类型必须实现 [`GenericSample`] 特征
     /// - `sample_rate`: 采样率
     /// - `channels`: 声道数
     /// - `speed`: 速度因子（变速不变调，1.0 为原始速度）
@@ -363,13 +324,13 @@ impl SonicStream {
     /// ```
     pub fn change_speed<S>(&mut self, samples: &[S]) -> Result<Vec<S>, OperationError>
     where
-        S: SonicSample,
+        S: GenericSample,
     {
         if samples.is_empty() {
             return Ok(Default::default());
         }
         if self.get_speed() == 1.0 {
-            return Ok(samples.to_owned());
+            return Ok(samples.to_vec());
         }
 
         self.write::<S>(samples)?;
