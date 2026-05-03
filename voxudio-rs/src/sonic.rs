@@ -350,3 +350,5 @@ impl Drop for SonicStream {
         }
     }
 }
+
+unsafe impl Send for SonicStream {}
