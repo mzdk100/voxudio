@@ -239,6 +239,33 @@ pub fn resample<const SSR: usize, const TSR: usize, S>(
 where
     S: GenericSample,
 {
+    resample_dynamic(samples, SSR, TSR, src_channels, tgt_channels)
+}
+
+/// 动态采样率版本的重采样处理
+///
+/// 参数与返回值同静态版本
+///
+/// # 示例
+/// ```
+/// use voxudio::resample_dynamic;
+/// fn main() -> anyhow::Result<()> {
+///     let samples = vec![0.1f32, 0.2, 0.3, 0.4];
+///     let resampled = resample_dynamic(&samples, 44100, 48000, 1, 2)?;
+///
+///     Ok(())
+/// }
+/// ```
+pub fn resample_dynamic<S>(
+    samples: &[S],
+    ssr: usize,
+    tsr: usize,
+    src_channels: usize,
+    tgt_channels: usize,
+) -> Result<Vec<S>, OperationError>
+where
+    S: GenericSample,
+{
     if samples.is_empty() || src_channels == 0 || tgt_channels == 0 {
         return Ok(Default::default());
     }
@@ -247,11 +274,11 @@ where
     let resampled: Vec<f32> = UniformSourceIterator::new(
         SamplesBuffer::new(
             ChannelCount::new(src_channels as _).ok_or(IoError::other("Invalid channel count."))?,
-            SampleRate::new(SSR as _).ok_or(IoError::other("Invalid sample rate."))?,
+            SampleRate::new(ssr as _).ok_or(IoError::other("Invalid sample rate."))?,
             f32_samples,
         ),
         ChannelCount::new(tgt_channels as _).ok_or(IoError::other("Invalid channel count."))?,
-        SampleRate::new(TSR as _).ok_or(IoError::other("Invalid sample rate."))?,
+        SampleRate::new(tsr as _).ok_or(IoError::other("Invalid sample rate."))?,
     )
     .collect();
 

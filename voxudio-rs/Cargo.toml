@@ -1,6 +1,6 @@
 [package]
 name = "voxudio"
-version = "0.6.2"
+version = "0.6.3"
 edition = "2024"
 license = "Apache-2.0"
 description = "A real-time audio processing library with ONNX runtime support"
@@ -11,7 +11,7 @@ keywords = ["audio", "processing", "onnx", "real-time", "machine-learning"]
 [dependencies]
 ndarray = "0.17.2"
 rodio = { version = "0.22.2", default-features = false, features = ["mp3", "wav"] }
-tokio = {version = "1.52.1", features = ["fs", "sync", "time"]}
+tokio = {version = "1.52.3", features = ["fs", "sync", "time"]}
 
 [dependencies.ort]
 version = "2.0.0-rc.12"
@@ -23,11 +23,11 @@ optional = true
 
 [build-dependencies]
 bindgen = "0.72.1"
-cc ="1.2.61"
+cc ="1.2.62"
 
 [dev-dependencies]
 anyhow = "1.0.102"
-tokio = { version = "1.52.1",features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.52.3",features = ["macros", "rt-multi-thread"] }
 
 [[example]]
 name = "asr"
