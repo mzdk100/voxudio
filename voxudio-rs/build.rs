@@ -202,7 +202,9 @@ fn compile_knf() {
     for file in &SOURCE_FILES_KNF {
         build.file(src_path.join(file));
     }
-    println!("cargo:rustc-link-lib=dylib=stdc++");
+    if var("CARGO_CFG_TARGET_OS").as_deref() == Ok("linux") {
+        println!("cargo:rustc-link-lib=dylib=stdc++");
+    }
 
     // 编译
     build.compile("knf");
