@@ -1,5 +1,7 @@
-use std::env::set_var;
-use std::{env::var, path::Path};
+use std::{
+    env::{set_var, var},
+    path::Path,
+};
 
 // 收集所有源文件名到数组中
 //noinspection SpellCheckingInspection
@@ -200,6 +202,7 @@ fn compile_knf() {
     for file in &SOURCE_FILES_KNF {
         build.file(src_path.join(file));
     }
+    println!("cargo:rustc-link-lib=dylib=stdc++");
 
     // 编译
     build.compile("knf");
