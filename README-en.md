@@ -2,7 +2,7 @@
 
 [中文版本](README.md)
 
-Voxudio is a project focused on speech processing and voice conversion, providing a complete set of tools for audio capture, playback, voice activity detection, speaker feature extraction, and voice conversion.
+Voxudio is a project focused on speech processing and voice conversion, providing a complete set of tools for audio capture, playback, voice activity detection, speaker feature extraction, voice conversion and speech recognition.
 
 ## Project Overview
 
@@ -25,6 +25,11 @@ Voxudio project offers implementations in multiple languages to meet different d
 - 🎭 **Tone Color Conversion (TCC)**
     - Real-time voice conversion
     - Preserves original speech content and emotion
+- 🗣️ **Automatic Speech Recognition (ASR)**
+    - **New Streaming ASR**: Based on [X-ASR-zh-en](https://github.com/Gilgamesh-J/X-ASR.git) Zipformer2 transducer architecture
+    - Multiple chumk configurations: 160ms / 480ms / 960ms / 1920ms
+    - Pure ONNX Runtime implementation, low latency and high quality
+    - Streaming token-by-token output, suitable for real-time applications
 
 ## Directory Structure
 
@@ -45,6 +50,14 @@ https://github.com/mzdk100/voxudio/releases/tag/model
 
 After downloading, place the model files in the `checkpoint` folder in the project root directory.
 
+#### ASR Models (New)
+
+```bash
+git lfs install
+git clone https://www.modelscope.ai/Gilgamesh-J/X-ASR-zh-en.git
+```
+Copy `deployment/models` to `checkpoint`
+
 ## Usage Guide
 
 ### Python Implementation
@@ -54,6 +67,7 @@ The Python implementation provides the following main modules:
 - `vad.py`: Voice Activity Detection
 - `see.py`: Speaker Embedding Extraction
 - `tcc.py`: Tone Color Conversion
+- `x_asr_onnx_infer.py`: Streaming speech recognition
 
 Example usage:
 

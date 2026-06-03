@@ -25,7 +25,12 @@ Voxudio is a high-performance audio processing library written in Rust, focusing
     - Algorithms mainly based on [kaldi-native-fbank](https://github.com/csukuangfj/kaldi-native-fbank)
     - Builder pattern with `with_*` methods for flexible parameter configuration (e.g., number of mel bins, window type, etc.)
 - 🗣️ **Automatic Speech Recognition (ASR)**
-    - Provides AutomaticSpeechRecognizer API for direct feature-to-text recognition
+    - **New Streaming ASR**: Based on [X-ASR-zh-en](https://github.com/Gilgamesh-J/X-ASR.git) Zipformer2 transducer architecture
+    - Multiple chumk configurations: 160ms / 480ms / 960ms / 1920ms
+    - Pure ONNX Runtime implementation, low latency and high quality
+    - Streaming token-by-token output, suitable for real-time applications
+    - Provides `AutomaticSpeechRecognizer` API (streaming) and `AutomaticSpeechRecognizerLegacy` (non-streaming)
+    - See [ASR Module Documentation](src/model/asr.rs) for details
 - ⏩ **Audio Speed Change without Pitch Shift (Sonic)**
     - High-quality time-stretch processing based on the [Sonic](https://github.com/waywardgeek/sonic) library
     - Supports speed change (speed), pitch shift (pitch), rate change (rate), and volume adjustment (volume)
@@ -40,7 +45,17 @@ Voxudio is a high-performance audio processing library written in Rust, focusing
 Due to their large size, model files are not included in version control. Please download the model files from:
 https://github.com/mzdk100/voxudio/releases/tag/model
 
+### Model Files Description
+
 After downloading, place the model files in the `checkpoint` folder in the project root directory.
+
+#### ASR Models (New)
+
+```bash
+git lfs install
+git clone https://www.modelscope.ai/Gilgamesh-J/X-ASR-zh-en.git
+```
+Copy `deployment/models` to `../checkpoint`
 
 ## Installation
 

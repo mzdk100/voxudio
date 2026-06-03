@@ -482,7 +482,7 @@ impl<O> OnlineFbankFeatureExtractor<O> {
     /// * `audio` - 音频数据（f32 数组，-1.0到1.0之间）。
     ///
     /// # 返回
-    /// 特征向量（Vec<f32>）。
+    /// 特征向量（`Vec<f32>`）。
     ///
     /// # 示例
     /// ```rust
@@ -498,9 +498,8 @@ impl<O> OnlineFbankFeatureExtractor<O> {
     where
         O: FbankOptions,
     {
-        let audio = audio.iter().map(|i| i * 32768f32).collect::<Vec<_>>();
         let mut ret = 0;
-        let ptr = self.opts.run::<SR>(&audio, &mut ret);
+        let ptr = self.opts.run::<SR>(audio, &mut ret);
         unsafe {
             let res = from_raw_parts(ptr, ret as _).to_owned();
             raw::knf::free_result(ptr);

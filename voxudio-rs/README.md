@@ -25,7 +25,12 @@ Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处
     - 算法主要来自 [kaldi-native-fbank](https://github.com/csukuangfj/kaldi-native-fbank)
     - 支持通过 builder 的 `with_*` 方法灵活配置参数（如梅尔滤波器组数、窗函数类型等）
 - 🗣️ **自动语音识别（ASR）**
-    - 提供 AutomaticSpeechRecognizer API，可直接输入特征并获得识别文本
+    - **全新流式 ASR**：基于 [X-ASR-zh-en 模型](https://github.com/Gilgamesh-J/X-ASR.git)的 Zipformer2 transducer 架构
+    - 支持多种Chumk配置：160ms / 480ms / 960ms / 1920ms
+    - 纯 ONNX Runtime 实现，低延迟、高质量
+    - 流式逐 token 输出，适合实时应用场景
+    - 提供 `AutomaticSpeechRecognizer` API（流式）和 `AutomaticSpeechRecognizerLegacy`（非流式）
+    - 详见 [ASR 模块文档](src/model/asr.rs)
 - ⏩ **音频变速不变调（Sonic）**
     - 基于 [Sonic](https://github.com/waywardgeek/sonic) 库的高质量音频变速不变调处理
     - 支持变速不变调（speed）、变调（pitch）、变速变调（rate）、音量调节（volume）
@@ -40,7 +45,17 @@ Voxudio 是一个用 Rust 编写的高性能音频处理库，专注于语音处
 由于模型文件较大，未包含在版本控制中。请从以下地址下载模型文件：
 https://github.com/mzdk100/voxudio/releases/tag/model
 
+### 模型文件说明
+
 下载后将模型文件放置在项目根目录的 `checkpoint` 文件夹中。
+
+#### ASR 模型（新增）
+
+```bash
+git lfs install
+git clone https://www.modelscope.ai/Gilgamesh-J/X-ASR-zh-en.git
+```
+将`deployment/models`复制到`../checkpoint`中
 
 ## 安装
 

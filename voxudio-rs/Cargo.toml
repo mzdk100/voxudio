@@ -1,6 +1,6 @@
 [package]
 name = "voxudio"
-version = "0.6.5"
+version = "0.7.0"
 edition = "2024"
 license = "Apache-2.0"
 description = "A real-time audio processing library with ONNX runtime support"
@@ -19,6 +19,14 @@ optional = true
 
 [dependencies.cpal]
 version = "0.17.3"
+optional = true
+
+[dependencies.async-stream]
+version = "0.3.6"
+optional = true
+
+[dependencies.futures-util]
+version = "0.3.32"
 optional = true
 
 [build-dependencies]
@@ -67,7 +75,7 @@ required-features = ["sonic", "device"]
 
 [features]
 device = ["cpal"]
-model = ["ort/default"]
+model = ["ort/default", "futures-util/default", "async-stream"]
 knf = []
 opus = []
 sonic = []

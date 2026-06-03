@@ -2,7 +2,7 @@
 
 [English Version](README-en.md)
 
-Voxudio 是一个专注于语音处理和音色转换的项目，提供了一套完整的工具，用于音频采集、播放、语音活动检测、说话人特征提取和音色转换。
+Voxudio 是一个专注于语音处理和音色转换的项目，提供了一套完整的工具，用于音频采集、播放、语音活动检测、说话人特征提取、音色转换和语音识别。
 
 ## 项目概述
 
@@ -25,6 +25,11 @@ Voxudio 项目提供了多种语言实现，以满足不同开发环境和性能
 - 🎭 **音色转换 (TCC)**
     - 实时语音音色转换
     - 保留原始语音内容和情感
+- 🗣️ **自动语音识别（ASR）**
+    - **全新流式 ASR**：基于 [X-ASR-zh-en 模型](https://github.com/Gilgamesh-J/X-ASR.git)的 Zipformer2 transducer 架构
+    - 支持多种Chumk配置：160ms / 480ms / 960ms / 1920ms
+    - 纯 ONNX Runtime 实现，低延迟、高质量
+    - 流式逐 token 输出，适合实时应用场景
 
 ## 目录结构
 
@@ -45,6 +50,14 @@ https://github.com/mzdk100/voxudio/releases/tag/model
 
 下载后将模型文件放置在项目根目录的 `checkpoint` 文件夹中。
 
+#### ASR 模型（新增）
+
+```bash
+git lfs install
+git clone https://www.modelscope.ai/Gilgamesh-J/X-ASR-zh-en.git
+```
+将`deployment/models`复制到`checkpoint`中
+
 ## 使用指南
 
 ### Python 实现
@@ -54,6 +67,7 @@ Python 实现提供了以下主要模块：
 - `vad.py`: 语音活动检测
 - `see.py`: 说话人特征提取
 - `tcc.py`: 音色转换
+- `x_asr_onnx_infer.py`: 流式语音识别
 
 示例用法：
 

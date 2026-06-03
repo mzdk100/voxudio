@@ -72,7 +72,7 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
-//!     let mut asr = AutomaticSpeechRecognizer::new("checkpoint/automatic_speech_recognizer.onnx")?;
+//!     let mut asr = AutomaticSpeechRecognizer::new_legacy("checkpoint/automatic_speech_recognizer.onnx")?;
 //!     let features = vec![0.0; AutomaticSpeechRecognizer::NUM_BINS as usize * 10]; // Assume features are extracted
 //!     let text = asr.recognize(&features).await?;
 //!     println!("{}", text);

@@ -101,7 +101,7 @@ async fn test_realtime_audio_processing() -> anyhow::Result<()> {
     sleep(Duration::from_millis(500)).await;
 
     // Read audio data
-    let audio_data = collector.read::<44100, f32>(2).await?;
+    let audio_data = collector.read::<16000, f32>(2).await?;
     println!("Read {} audio samples", audio_data.len());
 
     // Stop audio collector
@@ -110,7 +110,7 @@ async fn test_realtime_audio_processing() -> anyhow::Result<()> {
 
     // Detect speech activity with VAD
     println!("Detecting speech activity with VAD...");
-    let is_speech = vad.detect::<48000>(&audio_data).await?;
+    let is_speech = vad.detect::<16000>(&audio_data[..512]).await?;
     println!("VAD detection result: is_speech = {}", is_speech);
 
     // If speech detected, extract speaker features
