@@ -13,6 +13,7 @@ async fn main() -> anyhow::Result<()> {
     let mut ap = AudioPlayer::new()?;
     ap.play()?;
     let (audio, channels) = load_audio::<32000, f32, _>("../asset/test2.wav", false).await?;
+    // ap.stop()?;
     ap.write::<32000, f32>(&audio, channels).await?;
     ap.pause()?;
 

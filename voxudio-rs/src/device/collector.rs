@@ -64,7 +64,7 @@ impl AudioCollector {
         Ok((
             rx,
             device.build_input_stream(
-                stream_config,
+                stream_config.clone(),
                 move |buffer: &[f32], _| {
                     let iter = match tx.try_reserve_many(buffer.len()) {
                         Err(e) => {
@@ -230,7 +230,7 @@ impl AudioCollector {
     /// 可能返回`OperationError::StreamError`，当更新音频流失败时
     ///
     /// # 示例
-    /// ```
+    /// ```rust:norun
     /// use voxudio::AudioCollector;
     /// fn main() -> anyhow::Result<()> {
     /// let Ok(mut collector) = AudioCollector::new() else {

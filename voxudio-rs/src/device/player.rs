@@ -10,7 +10,10 @@ use {
         io::Error as IoError,
         mem::replace,
     },
-    tokio::sync::mpsc::{Sender, channel},
+    tokio::sync::{
+        mpsc::{Sender as MpscSender, channel as mpsc_channel},
+        watch::{Sender as WatchSender, channel as watch_channel},
+    },
 };
 
 /// 音频播放器结构体，用于管理和控制音频播放
@@ -45,28 +48,35 @@ pub struct AudioPlayer {
     stream_config: StreamConfig,
     supported_stream_config: SupportedStreamConfig,
     stream: Stream,
-    sender: Sender<f32>,
+    write_sender: MpscSender<f32>,
+    stop_sender: WatchSender<bool>,
 }
 
 impl AudioPlayer {
     fn create_stream(
         device: &Device,
         stream_config: &StreamConfig,
-    ) -> Result<(Sender<f32>, Stream), OperationError> {
+    ) -> Result<(MpscSender<f32>, WatchSender<bool>, Stream), OperationError> {
         let buffer_size = match stream_config.buffer_size {
             BufferSize::Default => 8192,
             BufferSize::Fixed(size) => size as _,
         };
-        let (tx, mut rx) = channel(buffer_size);
+        let (write_tx, mut write_rx) = mpsc_channel(buffer_size);
+        let (stop_tx, stop_rx) = watch_channel(false);
 
         Ok((
-            tx,
+            write_tx,
+            stop_tx,
             device.build_output_stream(
-                stream_config,
+                stream_config.clone(),
                 move |buffer: &mut [f32], _| {
-                    buffer
-                        .iter_mut()
-                        .for_each(|i| *i = rx.try_recv().unwrap_or_default())
+                    let buf = buffer.iter_mut();
+                    if *stop_rx.borrow() {
+                        buf.for_each(|i| *i = Default::default());
+                        while let Ok(_) = write_rx.try_recv() {}
+                    } else {
+                        buf.for_each(|i| *i = write_rx.try_recv().unwrap_or_default());
+                    }
                 },
                 |e| eprintln!("{}", e),
                 None,
@@ -75,9 +85,11 @@ impl AudioPlayer {
     }
 
     fn update_stream(&mut self) -> Result<(), OperationError> {
-        let (sender, stream) = Self::create_stream(&self.device, &self.stream_config)?;
+        let (write_sender, stop_sender, stream) =
+            Self::create_stream(&self.device, &self.stream_config)?;
         drop(replace(&mut self.stream, stream));
-        drop(replace(&mut self.sender, sender));
+        drop(replace(&mut self.write_sender, write_sender));
+        drop(replace(&mut self.stop_sender, stop_sender));
 
         Ok(())
     }
@@ -111,7 +123,7 @@ impl AudioPlayer {
         let host_id = host.id();
         let supported_stream_config = device.default_output_config()?;
         let stream_config = supported_stream_config.config();
-        let (sender, stream) = Self::create_stream(&device, &stream_config)?;
+        let (write_sender, stop_sender, stream) = Self::create_stream(&device, &stream_config)?;
 
         Ok(Self {
             device,
@@ -119,7 +131,8 @@ impl AudioPlayer {
             stream_config,
             supported_stream_config,
             stream,
-            sender,
+            write_sender,
+            stop_sender,
         })
     }
 
@@ -294,6 +307,8 @@ impl AudioPlayer {
     /// }
     /// ```
     pub fn play(&self) -> Result<(), OperationError> {
+        self.stop_sender.send(false)?;
+
         Ok(self.stream.play()?)
     }
 
@@ -317,6 +332,13 @@ impl AudioPlayer {
     /// ```
     pub fn pause(&self) -> Result<(), OperationError> {
         Ok(self.stream.pause()?)
+    }
+
+    pub fn stop(&self) -> Result<(), OperationError> {
+        self.stop_sender.send(true)?;
+        self.stream.pause()?;
+
+        Ok(())
     }
 
     /// 写入音频样本数据
@@ -356,7 +378,7 @@ impl AudioPlayer {
     {
         if self.get_stream_channels() != channels || self.get_stream_sample_rate() != SR {
             let f32_samples = samples_to_f32(samples);
-            let iter = UniformSourceIterator::new(
+            let mut iter = UniformSourceIterator::new(
                 SamplesBuffer::new(
                     ChannelCount::new(channels as _)
                         .ok_or(IoError::other("invalid channel count"))?,
@@ -368,15 +390,20 @@ impl AudioPlayer {
                 SampleRate::new(self.stream_config.sample_rate)
                     .ok_or(IoError::other("invalid sample rate"))?,
             );
-            for i in iter {
-                self.sender.send(i).await?;
+            while !*self.stop_sender.borrow() {
+                let mut p = self.write_sender.reserve_many(256).await?;
+                while let Some(w) = p.next()
+                    && let Some(i) = iter.next()
+                {
+                    w.send(i);
+                }
             }
 
             return Ok(());
         }
 
         for s in samples {
-            self.sender.send(s.to_f32()).await?;
+            self.write_sender.send(s.to_f32()).await?;
         }
 
         Ok(())

@@ -1,7 +1,6 @@
+//noinspection SpellCheckingInspection
 #[cfg(feature = "device")]
-use cpal::{
-    BuildStreamError, DefaultStreamConfigError, DeviceNameError, PauseStreamError, PlayStreamError,
-};
+use cpal::Error as CpalError;
 #[cfg(feature = "model")]
 use ort::Error as OrtError;
 #[cfg(feature = "knf")]
@@ -15,20 +14,20 @@ use {
         io::Error as IoError,
         time::SystemTimeError,
     },
-    tokio::sync::mpsc::error::SendError,
+    tokio::sync::{
+        mpsc::error::SendError as MpscSendError, watch::error::SendError as WatchSendError,
+    },
 };
 
+//noinspection SpellCheckingInspection
 /// 操作过程中可能出现的错误类型
 #[derive(Debug)]
 pub enum OperationError {
+    /// 音频设备错误
     #[cfg(feature = "device")]
-    BuildStream(BuildStreamError),
+    Cpal(CpalError),
     /// 音频解码错误
     Decoder(DecoderError),
-    #[cfg(feature = "device")]
-    DefaultStreamConfig(DefaultStreamConfigError),
-    #[cfg(feature = "device")]
-    DeviceName(DeviceNameError),
     /// 无效的输入数据
     InputInvalid(String),
     /// 输入数据过短
@@ -43,11 +42,7 @@ pub enum OperationError {
     /// ONNX运行时错误
     #[cfg(feature = "model")]
     Ort(String),
-    #[cfg(feature = "device")]
-    PauseStream(PauseStreamError),
-    #[cfg(feature = "device")]
-    PlayStream(PlayStreamError),
-    Send(SendError<f32>),
+    Send(String),
     /// 数组形状错误
     Shape(ShapeError),
     /// Sonic 变速处理错误
@@ -61,34 +56,9 @@ impl Clone for OperationError {
     fn clone(&self) -> Self {
         match self {
             #[cfg(feature = "device")]
-            Self::BuildStream(e) => Self::BuildStream(match e {
-                BuildStreamError::DeviceNotAvailable => BuildStreamError::DeviceNotAvailable,
-                BuildStreamError::StreamConfigNotSupported => {
-                    BuildStreamError::StreamConfigNotSupported
-                }
-                BuildStreamError::InvalidArgument => BuildStreamError::InvalidArgument,
-                BuildStreamError::StreamIdOverflow => BuildStreamError::StreamIdOverflow,
-                BuildStreamError::BackendSpecific { err } => BuildStreamError::BackendSpecific {
-                    err: err.to_owned(),
-                },
-            }),
+            Self::Cpal(e) => Self::Cpal(e.to_owned()),
             Self::Decoder(e) => Self::Decoder(e.to_owned()),
-            #[cfg(feature = "device")]
-            Self::DefaultStreamConfig(e) => Self::DefaultStreamConfig(match e {
-                DefaultStreamConfigError::DeviceNotAvailable => {
-                    DefaultStreamConfigError::DeviceNotAvailable
-                }
-                DefaultStreamConfigError::StreamTypeNotSupported => {
-                    DefaultStreamConfigError::StreamTypeNotSupported
-                }
-                DefaultStreamConfigError::BackendSpecific { err } => {
-                    DefaultStreamConfigError::BackendSpecific {
-                        err: err.to_owned(),
-                    }
-                }
-            }),
-            #[cfg(feature = "device")]
-            Self::DeviceName(e) => Self::DeviceName(e.to_owned()),
+
             Self::InputInvalid(s) => Self::InputInvalid(s.to_owned()),
             Self::InputTooShort => Self::InputTooShort,
             Self::Io(e) => Self::Io(IoError::new(e.kind(), e.to_string())),
@@ -98,21 +68,8 @@ impl Clone for OperationError {
             Self::Opus(s) => Self::Opus(s.to_owned()),
             #[cfg(feature = "model")]
             Self::Ort(e) => Self::Ort(e.to_owned()),
-            #[cfg(feature = "device")]
-            Self::PauseStream(e) => Self::PauseStream(match e {
-                PauseStreamError::DeviceNotAvailable => PauseStreamError::DeviceNotAvailable,
-                PauseStreamError::BackendSpecific { err } => PauseStreamError::BackendSpecific {
-                    err: err.to_owned(),
-                },
-            }),
-            #[cfg(feature = "device")]
-            Self::PlayStream(e) => Self::PlayStream(match e {
-                PlayStreamError::DeviceNotAvailable => PlayStreamError::DeviceNotAvailable,
-                PlayStreamError::BackendSpecific { err } => PlayStreamError::BackendSpecific {
-                    err: err.to_owned(),
-                },
-            }),
-            Self::Send(e) => Self::Send(*e),
+
+            Self::Send(msg) => Self::Send(msg.clone()),
             Self::Shape(e) => Self::Shape(e.clone()),
             #[cfg(feature = "sonic")]
             Self::Sonic(s) => Self::Sonic(s.to_owned()),
@@ -127,12 +84,9 @@ impl Display for OperationError {
         write!(f, "OperationError: ")?;
         match self {
             #[cfg(feature = "device")]
-            Self::BuildStream(e) => Display::fmt(e, f),
+            Self::Cpal(e) => Display::fmt(e, f),
             Self::Decoder(e) => Display::fmt(e, f),
-            #[cfg(feature = "device")]
-            Self::DefaultStreamConfig(e) => Display::fmt(e, f),
-            #[cfg(feature = "device")]
-            Self::DeviceName(e) => Display::fmt(e, f),
+
             Self::InputInvalid(s) => write!(f, "InputInvalid: {}", s,),
             Self::InputTooShort => write!(f, "InputTooShort: Input audio chunk is too short"),
             Self::Io(e) => Display::fmt(e, f),
@@ -142,11 +96,8 @@ impl Display for OperationError {
             Self::Opus(s) => write!(f, "OpusError: {}", s,),
             #[cfg(feature = "model")]
             Self::Ort(e) => write!(f, "OrtError: {}", e),
-            #[cfg(feature = "device")]
-            Self::PauseStream(e) => Display::fmt(e, f),
-            #[cfg(feature = "device")]
-            Self::PlayStream(e) => Display::fmt(e, f),
-            Self::Send(e) => Display::fmt(e, f),
+
+            Self::Send(msg) => write!(f, "SendError: {}", msg),
             Self::Shape(e) => Display::fmt(e, f),
             #[cfg(feature = "sonic")]
             Self::Sonic(s) => write!(f, "SonicError: {}", s),
@@ -188,44 +139,15 @@ impl From<DecoderError> for OperationError {
     }
 }
 
-#[cfg(feature = "device")]
-impl From<DeviceNameError> for OperationError {
-    fn from(value: DeviceNameError) -> Self {
-        Self::DeviceName(value)
+impl<T> From<MpscSendError<T>> for OperationError {
+    fn from(value: MpscSendError<T>) -> Self {
+        Self::Send(value.to_string())
     }
 }
 
-#[cfg(feature = "device")]
-impl From<DefaultStreamConfigError> for OperationError {
-    fn from(value: DefaultStreamConfigError) -> Self {
-        Self::DefaultStreamConfig(value)
-    }
-}
-
-#[cfg(feature = "device")]
-impl From<BuildStreamError> for OperationError {
-    fn from(value: BuildStreamError) -> Self {
-        Self::BuildStream(value)
-    }
-}
-
-#[cfg(feature = "device")]
-impl From<PlayStreamError> for OperationError {
-    fn from(value: PlayStreamError) -> Self {
-        Self::PlayStream(value)
-    }
-}
-
-#[cfg(feature = "device")]
-impl From<PauseStreamError> for OperationError {
-    fn from(value: PauseStreamError) -> Self {
-        Self::PauseStream(value)
-    }
-}
-
-impl From<SendError<f32>> for OperationError {
-    fn from(value: SendError<f32>) -> Self {
-        Self::Send(value)
+impl<T> From<WatchSendError<T>> for OperationError {
+    fn from(value: WatchSendError<T>) -> Self {
+        Self::Send(value.to_string())
     }
 }
 
@@ -233,5 +155,12 @@ impl From<SendError<f32>> for OperationError {
 impl From<NulError> for OperationError {
     fn from(value: NulError) -> Self {
         Self::Nul(value)
+    }
+}
+
+#[cfg(feature = "device")]
+impl From<CpalError> for OperationError {
+    fn from(value: CpalError) -> Self {
+        Self::Cpal(value)
     }
 }
