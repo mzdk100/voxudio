@@ -334,6 +334,7 @@ impl AudioPlayer {
         Ok(self.stream.pause()?)
     }
 
+    /// 停止播放音频(可使用`play()`恢复）
     pub fn stop(&self) -> Result<(), OperationError> {
         self.stop_sender.send(true)?;
         self.stream.pause()?;
@@ -392,10 +393,12 @@ impl AudioPlayer {
             );
             while !*self.stop_sender.borrow() {
                 let mut p = self.write_sender.reserve_many(256).await?;
-                while let Some(w) = p.next()
-                    && let Some(i) = iter.next()
-                {
-                    w.send(i);
+                while let Some(w) = p.next() {
+                    if let Some(i) = iter.next() {
+                        w.send(i);
+                    } else {
+                        return Ok(());
+                    }
                 }
             }
 
