@@ -68,12 +68,12 @@ impl AudioPlayer {
             write_tx,
             stop_tx,
             device.build_output_stream(
-                stream_config.clone(),
+                *stream_config,
                 move |buffer: &mut [f32], _| {
                     let buf = buffer.iter_mut();
                     if *stop_rx.borrow() {
                         buf.for_each(|i| *i = Default::default());
-                        while let Ok(_) = write_rx.try_recv() {}
+                        while write_rx.try_recv().is_ok() {}
                     } else {
                         buf.for_each(|i| *i = write_rx.try_recv().unwrap_or_default());
                     }
@@ -392,8 +392,8 @@ impl AudioPlayer {
                     .ok_or(IoError::other("invalid sample rate"))?,
             );
             while !*self.stop_sender.borrow() {
-                let mut p = self.write_sender.reserve_many(256).await?;
-                while let Some(w) = p.next() {
+                let p = self.write_sender.reserve_many(256).await?;
+                for w in p {
                     if let Some(i) = iter.next() {
                         w.send(i);
                     } else {

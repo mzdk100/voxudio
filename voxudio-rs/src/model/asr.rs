@@ -428,7 +428,6 @@ pub struct AutomaticSpeechRecognizer {
     encoder_session: Session,
     decoder_session: Session,
     joiner_session: Session,
-    run_options: RunOptions,
     context_size: i64,
 
     // Encoder 配置
@@ -543,7 +542,6 @@ impl AutomaticSpeechRecognizer {
         let encoder_session = Self::build_session(&encoder_path)?;
         let decoder_session = Self::build_session(&decoder_path)?;
         let joiner_session = Self::build_session(&joiner_path)?;
-        let run_options = RunOptions::new()?;
 
         // 读取 encoder 元数据
         let meta = parse_encoder_metadata(&encoder_session)?;
@@ -569,7 +567,6 @@ impl AutomaticSpeechRecognizer {
             encoder_session,
             decoder_session,
             joiner_session,
-            run_options,
             context_size,
             t_frames,
             decode_chunk_len,
@@ -660,6 +657,7 @@ impl AutomaticSpeechRecognizer {
     }
 
     async fn run_decoder(&mut self, token_ids: &[i64]) -> Result<Array2<f32>, OperationError> {
+        let run_options = RunOptions::new()?;
         let ctx: Vec<i64> = if token_ids.len() >= self.context_size as usize {
             token_ids[token_ids.len() - self.context_size as usize..].to_vec()
         } else {
@@ -675,7 +673,7 @@ impl AutomaticSpeechRecognizer {
                 inputs![
                     "y" => TensorRef::from_array_view(&ctx_arr)?,
                 ],
-                &self.run_options,
+                &run_options,
             )?
             .await?;
 
@@ -695,6 +693,7 @@ impl AutomaticSpeechRecognizer {
         enc_frame: &Array2<f32>,
         dec_out: &Array2<f32>,
     ) -> Result<Array2<f32>, OperationError> {
+        let run_options = RunOptions::new()?;
         let outputs = self
             .joiner_session
             .run_async(
@@ -702,7 +701,7 @@ impl AutomaticSpeechRecognizer {
                     "encoder_out" => TensorRef::from_array_view(enc_frame)?,
                     "decoder_out" => TensorRef::from_array_view(dec_out)?,
                 ],
-                &self.run_options,
+                &run_options,
             )?
             .await?;
 
@@ -815,6 +814,7 @@ impl AutomaticSpeechRecognizer {
         }
 
         Box::pin(stream! {
+            let run_options = RunOptions::new()?;
             let t_frames = self.t_frames as usize;
             let decode_chunk_len = self.decode_chunk_len;
 
@@ -853,7 +853,7 @@ impl AutomaticSpeechRecognizer {
 
                 // 运行 encoder
                 let (encoder_out, new_caches) =
-                    build_and_run_encoder(&mut self.encoder_session, &self.run_options, &chunk_arr, &encoder_caches).await?;
+                    build_and_run_encoder(&mut self.encoder_session, &run_options, &chunk_arr, &encoder_caches).await?;
                 encoder_caches = new_caches;
 
                 let (_, num_frames, encoder_dim) = encoder_out.dim();
@@ -891,7 +891,7 @@ impl AutomaticSpeechRecognizer {
                 let chunk_arr = Array3::from_shape_vec((1, t_frames, Self::NUM_BINS as _), padded)?;
 
                 let (encoder_out, _) =
-                    build_and_run_encoder(&mut self.encoder_session, &self.run_options, &chunk_arr, &encoder_caches).await?;
+                    build_and_run_encoder(&mut self.encoder_session, &run_options, &chunk_arr, &encoder_caches).await?;
 
                 let (_, num_frames, encoder_dim) = encoder_out.dim();
 

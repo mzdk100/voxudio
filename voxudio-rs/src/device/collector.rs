@@ -64,7 +64,7 @@ impl AudioCollector {
         Ok((
             rx,
             device.build_input_stream(
-                stream_config.clone(),
+                *stream_config,
                 move |buffer: &[f32], _| {
                     let iter = match tx.try_reserve_many(buffer.len()) {
                         Err(e) => {
