@@ -1,6 +1,9 @@
 mod raw;
 
-use {crate::GenericSample, crate::error::OperationError, std::ptr::null};
+use {
+    crate::{GenericSample, error::OperationError},
+    std::{mem::forget, ptr::null},
+};
 
 /// 封装Opus应用类型为枚举
 ///
@@ -405,42 +408,91 @@ impl OpusDecoder {
     where
         S: GenericSample,
     {
-        // 为输出分配足够的空间（frame_size * channels）
-        let mut decoded = vec![S::zero(); frame_size * self.channels];
-
-        let decoded_samples = unsafe {
-            if let Some(data) = data {
-                raw::opus_decode(
-                    self.decoder,
-                    data.as_ptr(),
-                    data.len() as _,
-                    decoded.as_mut_ptr() as _,
-                    frame_size as _, // 这里传入每个通道的输出样本数
-                    0,               // 不使用FEC
-                )
-            } else {
-                // 解码丢失的包（PLC - Packet Loss Concealment）
-                raw::opus_decode(
-                    self.decoder,
-                    null(),
-                    0,
-                    decoded.as_mut_ptr() as _,
-                    frame_size as _, // 这里传入每个通道的输出样本数
-                    0,
-                )
+        if S::is_i16() {
+            // i16 路径：直接使用 opus_decode
+            let mut decoded = vec![0i16; frame_size * self.channels];
+            let decoded_samples = unsafe {
+                if let Some(data) = data {
+                    raw::opus_decode(
+                        self.decoder,
+                        data.as_ptr(),
+                        data.len() as _,
+                        decoded.as_mut_ptr() as _,
+                        frame_size as _,
+                        0,
+                    )
+                } else {
+                    raw::opus_decode(
+                        self.decoder,
+                        null(),
+                        0,
+                        decoded.as_mut_ptr() as _,
+                        frame_size as _,
+                        0,
+                    )
+                }
+            };
+            if decoded_samples < 0 {
+                return Err(OperationError::Opus(format!(
+                    "Failed to decode: {}",
+                    decoded_samples
+                )));
             }
-        };
-
-        if decoded_samples < 0 {
-            return Err(OperationError::Opus(format!(
-                "Failed to decode: {}",
-                decoded_samples
-            )));
+            decoded.truncate(decoded_samples as usize * self.channels);
+            // SAFETY: GenericSample::is_i16() 为 true 时，S 就是 i16，布局兼容。
+            // 通过 forget 防止 decoded 被 drop 导致双重释放。
+            Ok(unsafe {
+                let ptr = decoded.as_mut_ptr() as *mut S;
+                let len = decoded.len();
+                let cap = decoded.capacity();
+                forget(decoded);
+                Vec::from_raw_parts(ptr, len, cap)
+            })
+        } else {
+            // f32 路径：使用 opus_decode_float
+            let mut decoded = vec![0.0f32; frame_size * self.channels];
+            let decoded_samples = unsafe {
+                if let Some(data) = data {
+                    raw::opus_decode_float(
+                        self.decoder,
+                        data.as_ptr(),
+                        data.len() as _,
+                        decoded.as_mut_ptr() as _,
+                        frame_size as _,
+                        0,
+                    )
+                } else {
+                    raw::opus_decode_float(
+                        self.decoder,
+                        null(),
+                        0,
+                        decoded.as_mut_ptr() as _,
+                        frame_size as _,
+                        0,
+                    )
+                }
+            };
+            if decoded_samples < 0 {
+                return Err(OperationError::Opus(format!(
+                    "Failed to decode: {}",
+                    decoded_samples
+                )));
+            }
+            decoded.truncate(decoded_samples as usize * self.channels);
+            // SAFETY: 此分支 S 非 i16。当 S::is_f32() 为 true 时，S 就是 f32，布局兼容。
+            // 通过 forget 防止 decoded 被 drop 导致双重释放。
+            if S::is_f32() {
+                Ok(unsafe {
+                    let ptr = decoded.as_mut_ptr() as *mut S;
+                    let len = decoded.len();
+                    let cap = decoded.capacity();
+                    forget(decoded);
+                    Vec::from_raw_parts(ptr, len, cap)
+                })
+            } else {
+                Ok(decoded.iter().map(|&v| S::from_f32(v)).collect())
+            }
         }
-        // 调整输出大小为实际解码的样本数 * 通道数
-        decoded.truncate(decoded_samples as usize * self.channels);
-
-        Ok(decoded)
     }
 }
 

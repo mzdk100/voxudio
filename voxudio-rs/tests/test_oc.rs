@@ -56,7 +56,7 @@ fn generate_complex_audio(duration_ms: usize, sample_rate: usize) -> Vec<i16> {
         value += noise;
 
         // 确保值在[-0.8, 0.8]范围内，进一步避免溢出
-        value = value.max(-0.8).min(0.8);
+        value = value.clamp(-0.8, 0.8);
 
         // 归一化并转换为i16，使用安全的转换方式
         let sample = (value * 30000.0) as i16; // 使用30000而不是32767，留出更多余量

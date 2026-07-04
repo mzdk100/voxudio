@@ -184,9 +184,14 @@ fn compile_opus() {
     // 添加定义并编译
     build
         .define("OPUS_BUILD", None)
-        .define("NONTHREADSAFE_PSEUDOSTACK", None)
-        .define("ENABLE_ASSERTIONS", None)
-        .compile("opus")
+        .define("NONTHREADSAFE_PSEUDOSTACK", None);
+
+    // 仅在非 release 模式下启用断言
+    if cfg!(debug_assertions) {
+        build.define("ENABLE_ASSERTIONS", None);
+    }
+
+    build.compile("opus")
 }
 
 fn compile_knf() {

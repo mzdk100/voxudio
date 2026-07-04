@@ -174,13 +174,13 @@ async fn test_tcc_feature_influence() -> anyhow::Result<()> {
     let mut features2 = [[0.0f32; 256]];
 
     // Feature vector 1: all set to 0.1
-    for i in 0..256 {
-        features1[0][i] = 0.1;
+    for item in &mut features1[0] {
+        *item = 0.1;
     }
 
     // Feature vector 2: all set to -0.1
-    for i in 0..256 {
-        features2[0][i] = -0.1;
+    for item in &mut features2[0] {
+        *item = -0.1;
     }
 
     // 使用两个不同的特征向量进行转换

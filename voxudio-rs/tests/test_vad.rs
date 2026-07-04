@@ -60,7 +60,7 @@ async fn test_vad_get_speech_segments() -> anyhow::Result<()> {
         let t = i as f32 / sample_rate as f32;
 
         // Add speech signal between 1-2 seconds
-        if t >= 1.0 && t <= 2.0 {
+        if (1.0..=2.0).contains(&t) {
             let sample = 0.5 * (2.0 * PI * 150.0 * t).sin() + 0.3 * (2.0 * PI * 250.0 * t).sin();
             audio.push(sample);
         } else {
@@ -125,7 +125,7 @@ async fn test_vad_retain_speech_only() -> anyhow::Result<()> {
         let t = i as f32 / sample_rate as f32;
 
         // Add more realistic speech signal between 1-2 seconds
-        if t >= 1.0 && t <= 2.0 {
+        if (1.0..=2.0).contains(&t) {
             // Fundamental frequency + harmonics to simulate real speech
             let f0 = 120.0; // Fundamental frequency
             let sample_left = 0.5 * (2.0 * PI * f0 * t).sin()
